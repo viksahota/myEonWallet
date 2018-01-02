@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace myEonClient
 {
-    public class MyEonClient
+    public class MyEonClient : IMyEonClientInterface
     {
 
         public WalletManagerClass WalletManager;
@@ -21,6 +21,11 @@ namespace myEonClient
             WalletManager.ErrorEvent += (sender, msg) => {ErrorMsg(msg);};
 
 
+        }
+
+        public void MethodToImplement()
+        {
+            DebugMsg("MethodToImplement() called.");
         }
 
         #region Callback routines

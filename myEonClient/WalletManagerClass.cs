@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace myEonClient
@@ -64,14 +66,16 @@ namespace myEonClient
             {
                 foreach (WalletClass wal in WalletCollection)
                 {
-                    WalletClass censoredWallet = new WalletClass();
-                    censoredWallet.AccountID = wal.AccountID;
-                    censoredWallet.AccountNumber = wal.AccountNumber;
-                    censoredWallet.Balance = wal.Balance;
-                    censoredWallet.Deposit = wal.Deposit;
-                    censoredWallet.NickName = wal.NickName;
-                    censoredWallet.PublicKey = wal.PublicKey;
-                    censoredWallet.Seed = "";
+                    WalletClass censoredWallet = new WalletClass
+                    {
+                        AccountID = wal.AccountID,
+                        AccountNumber = wal.AccountNumber,
+                        Balance = wal.Balance,
+                        Deposit = wal.Deposit,
+                        NickName = wal.NickName,
+                        PublicKey = wal.PublicKey,
+                        Seed = ""
+                    };
                     censoredCollection.Add(censoredWallet);                    
                 }
                 DebugMsg("GetWalletCollection() OK");
@@ -130,32 +134,127 @@ namespace myEonClient
         }
 
         #endregion
-        
-        #region LOAD/SAVE/BACKUP/RESTORE the WalletCollection
-        //load the wallets from resource file object
+
+        #region LOAD/SAVE/BACKUP/RESTORE/SERIALISE/DESERIALISE the WalletCollection
+
+        //load the wallets from ApplicationSettingsBase
         public bool LoadWallets()
         {
+            DeserialiseWalletCollection(Properties.Settings.Default.WalletsJson);
             return true;
         }
 
-        //store the wallets to resource file object
+        //store the wallets to ApplicationSettingsBase
         public bool SaveWallets()
         {
+            Properties.Settings.Default.WalletsJson = SerialiseWalletCollection(); ;
+            Properties.Settings.Default.Save();
             return true;
         }
 
         //backup the wallets to a file
-        public bool BackupWalletList()
+        public bool BackupWalletList(string filePath)
         {
-            return true;
+            bool res = false;
+            String js = SerialiseWalletCollection();
+
+            TextWriter writer = null;
+            try
+            {
+                writer = new StreamWriter(filePath, false);
+                writer.Write(js);
+                res = true;
+                DebugMsg("BackupWalletList() - Backed up to " + filePath);
+            }
+            catch(Exception ex)
+            {
+                ErrorMsg("BackupWalletList() - File write failed with exception : " + ex.Message);
+            }
+            finally
+            {
+                writer?.Close();
+            }
+
+            return res;
         }
 
         //restore the wallets from a file
-        public bool RestoreWalletList()
+        public bool RestoreWalletList(string filePath)
         {
-            return true;
+            bool res = false;
+            string fileContents = "";
+            TextReader reader = null;
+
+            try
+            {
+                reader = new StreamReader(filePath);
+                fileContents = reader.ReadToEnd();
+
+                DeserialiseWalletCollection(fileContents);
+
+                DebugMsg("RestoreWalletList() - Restored from " + filePath);
+                res = true;
+            }
+            catch(Exception ex)
+            {
+                ErrorMsg("RestoreWalletList() - Raised Exception :" + ex.Message);
+            }
+            finally
+            {
+                reader?.Close();
+            }
+                      
+
+            return res;
         }
+
+        //serialise the WalletCollection
+        private string SerialiseWalletCollection()
+        {
+            String js = "[";
+
+            foreach (WalletClass wal in WalletCollection)
+            {
+                js += "{\"NickName\":\"" + wal.NickName + "\",\"Seed\":\"" + wal.Seed + "\",\"AccountNumber\":\"" + wal.AccountNumber + "\",\"AccountID\":\"" + wal.AccountID + "\",\"PublicKey\":\"" + wal.PublicKey + "\"},";
+            }
+            js.Remove(js.Length - 1, 1);
+            js += "]";
+
+            return (js);
+        }
+
+        //deserialise string and write to the WalletCollection
+        private void DeserialiseWalletCollection(string jsonString)
+        {
+            try
+            {
+                //regex to split into invididual json strings
+                Match walletMatches = Regex.Match(jsonString, @"{[^}]*}");
+
+                //parse each wallet into the WalletCollection
+                WalletCollection.Clear();
+                foreach (string walletJson in walletMatches.Groups)
+                {
+                    Match walletData = Regex.Match(walletJson, @"{""NickName"":""([^""]*)"",""Seed"":""([^""]*)"",""AccountNumber"":""([^""]*)"",""AccountID"":""([^""]*)"",""PublicKey"":""([^""]*)""}");
+                    WalletClass wal = new WalletClass
+                    {
+                        NickName = walletData.Groups[1].ToString(),
+                        Seed = walletData.Groups[2].ToString(),
+                        AccountNumber = walletData.Groups[3].ToString(),
+                        AccountID = walletData.Groups[4].ToString(),
+                        PublicKey = walletData.Groups[5].ToString()
+                    };
+                    WalletCollection.Add(wal);
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("DeserialiseWalletCollection() - Raised Exception :" + ex.Message);
+            }
+        }
+
         #endregion
+
 
 
         // ---------------------------------------
