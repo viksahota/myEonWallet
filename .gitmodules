@@ -1,0 +1,3 @@
+[submodule "EonSharp"]
+	path = EonSharp
+	url = https://github.com/Zof-R/EonSharp.git
