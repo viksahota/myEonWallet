@@ -25,7 +25,7 @@ namespace myEonClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[]")]
         public string WalletsJson {
             get {
                 return ((string)(this["WalletsJson"]));
@@ -37,7 +37,7 @@ namespace myEonClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool EnableDebugLog {
             get {
                 return ((bool)(this["EnableDebugLog"]));
@@ -49,7 +49,7 @@ namespace myEonClient.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool EnableErrorLog {
             get {
                 return ((bool)(this["EnableErrorLog"]));

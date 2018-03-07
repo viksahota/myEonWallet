@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="myEonWallet.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="WalletsJson" Type="System.String" Scope="User">
-      <Value Profile="(Default)">[{"NickName":"Primary","Seed":"91814f1ba86229120fbaf74066dba1cc7850667fa2bb9d11ae37f808135118c4","AccountID":"EON-RUV94-ZTJPS-NPCYZ","PublicKey":"37109ef5182b7f9efd6eb3924a722c59c308df36f1050a67c7b6439de5305338"},{"NickName":"account2","Seed":"52f0d7ed03d2ec526e2f9f82cc0b87604a2cb7404e778b8d5f9364a24102e146","AccountID":"EON-JEP27-E638L-7VN3N","PublicKey":"16f334bb97a762a3e384edc7eba87bfa43b7841373d62fc959f064d56f24e0f5"}]</Value>
-    </Setting>
     <Setting Name="BalanceSyncPeriod" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">10</Value>
     </Setting>

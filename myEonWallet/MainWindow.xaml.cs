@@ -170,6 +170,8 @@ namespace myEonWallet
         //debug message handler
         private void DebugMsg(string line)
         {
+
+
             if (!ShutDownFlag)
             {
                 Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate
@@ -217,7 +219,21 @@ namespace myEonWallet
                 }));
             }
         }
+        /*
+        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            // Log the exception, display it, etc
+            MessageBox.Show("ThreadException error.\r\n\r\nPlease submit screenshot for debug : \r\n\r\n" + e.Exception.Message, "Error - Terminating....");
+        }
 
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+
+            // Log the exception, display it, etc
+            MessageBox.Show("Unhandled Exception error.\r\n\r\nPlease submit screenshot for debug : \r\n\r\n" + (e.ExceptionObject as Exception).Message, "Error - Terminating....");
+
+        }
+        */
         //config change message handler, coming from numerical up/down usercontrol
         private void ConfigChangeHandler(string msg)
         {

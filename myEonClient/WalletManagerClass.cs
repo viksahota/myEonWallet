@@ -120,6 +120,7 @@ namespace myEonClient
 
         #region LOAD/SAVE/BACKUP/RESTORE/SERIALISE/DESERIALISE the WalletCollection
 
+
         //load the wallets from ApplicationSettingsBase , gives exception on failure
         public async void LoadWallets(myEonClient.MyEonClient eonClient)
         {
