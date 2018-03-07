@@ -82,7 +82,16 @@ namespace myEonWallet
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            await newWallet.RefreshAsync(eonClient.eonSharpClient);
+            try
+            {
+                await newWallet.RefreshAsync(eonClient.eonSharpClient);
+            }
+            catch
+            {
+                newWallet.Information = new EonSharp.Api.Info();
+                newWallet.Information.Amount = 0;
+                newWallet.Information.Deposit = 0;
+            }
             eonClient.WalletManager.AddWallet(newWallet);
             this.Close();
         }

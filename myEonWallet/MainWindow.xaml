@@ -225,8 +225,6 @@
                     <Button x:Name="DepositButton" HorizontalAlignment="Left" Margin="515,43,0,0" VerticalAlignment="Top" Width="19" FontSize="10" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="DepositButton_Click" Grid.Column="1" Height="22">
                         <Image Margin="0,0,0,0" Source="images/settings-work-tool.png" ToolTip="Refill EON deposit account from the main balance"/>
                     </Button>
-
-                    <Button x:Name="WithdrawButton" HorizontalAlignment="Left" Margin="433,91,0,0" VerticalAlignment="Top" Width="25" FontSize="10" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Click="WithdrawButton_Click" Grid.Column="1" ToolTip="Withdraw EON from deposit account to the main balance"/>
                     <Label Content="+ Deposit" HorizontalAlignment="Left" Margin="439,38,0,0" VerticalAlignment="Top" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" Width="75" Foreground="White" Grid.Column="1"/>
                     <Label x:Name="DepositLBL" Content="0" HorizontalAlignment="Left" Margin="411,70,0,0" VerticalAlignment="Top" Width="160" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" Foreground="White" Grid.Column="1" ToolTip="The current deposit (staked) balance of the selected account" Height="27"/>
                     <Label Content="Available Balance" HorizontalAlignment="Left" Margin="189,36,0,0" VerticalAlignment="Top" FontSize="16" Width="211" Foreground="White" Grid.Column="1" Height="29" HorizontalContentAlignment="Center"/>

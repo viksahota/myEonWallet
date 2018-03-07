@@ -28,6 +28,8 @@ namespace myEonWallet
         public Wallet primaryWallet;
         public Wallet newWallet;
 
+        bool AddAfterImport = false;
+
         /* public NewAttachedAccountDialog()
          {
              InitializeComponent();
@@ -161,6 +163,7 @@ namespace myEonWallet
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            if (AddAfterImport) eonClient.WalletManager.AddWallet(newWallet);
             this.Close();
         }
 
@@ -188,6 +191,8 @@ namespace myEonWallet
                 CopyButton.IsEnabled = true;
                 AddButton.IsEnabled = true;
                 AddButton.Visibility = Visibility.Visible;
+
+                AddAfterImport = true;
 
             }
         }

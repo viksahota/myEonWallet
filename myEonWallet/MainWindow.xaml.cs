@@ -598,114 +598,41 @@ namespace myEonWallet
 
         private async void DepositButton_Click(object sender, RoutedEventArgs e)
         {
-            decimal amount = 0;
-
-            DepositConfirm dConfirm = new DepositConfirm("Adjust the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + "?\r\n\r\n1. Enter the new deposit amount below\r\n2. Supply the password for your encrypted wallet\r\n3. Press YES to confirm and place this transaction on the EON blockchain");
-            dConfirm.DepositAmountTB.Text = ((decimal)eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Deposit / 1000000).ToString();
-
-            if ((bool)dConfirm.ShowDialog())
+            if (AccountListView.SelectedIndex != -1)
             {
+                decimal amount = 0;
 
-                try
+                DepositConfirm dConfirm = new DepositConfirm("Adjust the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + "?\r\n\r\n1. Enter the new deposit amount below\r\n2. Supply the password for your encrypted wallet\r\n3. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.DepositAmountTB.Text = ((decimal)eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Deposit / 1000000).ToString();
+
+                if ((bool)dConfirm.ShowDialog())
                 {
-                    amount = decimal.Parse(dConfirm.DepositAmountTB.Text);
-                    RpcResponseClass RpcResult = await eonClient.Transaction_SetDeposit(AccountListView.SelectedIndex, amount, dConfirm.walletPasswordBox.Password);
-
-                    if (RpcResult.Result)
-                    {
-                        DebugMsg("Transaction SUCCESS -  Allocate " + amount + " EON to the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId);
-                    }
-                    else
-                    {
-                        ErrorMsg("Transaction FAILED - Allocate " + amount + " EON to deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " - " + RpcResult.Message);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ErrorMsg("Transaction FAILED - Change Deposit to " + amount + " EON failed for account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " [Exception] - " + ex.Message);
-
-                }
-
-            }
-
-                /*if (decimal.TryParse(amountTB.Text, out amount))
-                {
-                    MsgBoxYesNo msgbox = new MsgBoxYesNo("Refill " + amount + " EON to the deposit balance of account "+ eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + "? Press YES to confirm and place this transaction on the EON blockchain");
-                    if ((bool)msgbox.ShowDialog())
-                    {
-                        try
-                        {
-                            RpcResponseClass RpcResult = await eonClient.Transaction_Refill(AccountListView.SelectedIndex, 1000000 * amount, "DUMMYPASSWORD");
-                            if (RpcResult.Result)
-                            {
-                                DebugMsg("Transaction SUCCESS -  Refilled " + amount + " EON to the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id);
-                            }
-                            else
-                            {
-                                ErrorMsg("Transaction FAILED - Refill of " + amount + " EON to deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + " - " + RpcResult.Message);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            ErrorMsg("Transaction FAILED - Refill of " + amount + " EON to deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + " [Exception] - " + ex.Message);
-
-                        }
-                    }
-                    else
-                    {
-                        //cancelled
-                    }
-
-
-
-                }
-                else
-                {
-                    ErrorMsg("Error parsing the AMOUNT. Correct before retrying.");
-                }*/
-
-            }
-
-        private async void WithdrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            decimal amount = 0;
-
-            /*if (decimal.TryParse(amountTB.Text, out amount))
-            {
-
-                MsgBoxYesNo msgbox = new MsgBoxYesNo("Withdraw " + amount + " EON from the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + "? Press YES to confirm and place this transaction on the EON blockchain");
-                if ((bool)msgbox.ShowDialog())
-                {
-
 
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_Withdraw(AccountListView.SelectedIndex, 1000000 * amount, "DUMMYPASSWORD");
+                        amount = decimal.Parse(dConfirm.DepositAmountTB.Text);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_SetDeposit(AccountListView.SelectedIndex, amount, dConfirm.walletPasswordBox.Password);
+
                         if (RpcResult.Result)
                         {
-                            DebugMsg("Transaction SUCCESS - Withdrew " + amount + " EON from deposit balance to main balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id);
+                            DebugMsg("Transaction SUCCESS -  Allocate " + amount + " EON to the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId);
                         }
                         else
                         {
-                            ErrorMsg("Transaction FAILED - Withdrawal of " + amount + " EON from deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + " - " + RpcResult.Message);
+                            ErrorMsg("Transaction FAILED - Allocate " + amount + " EON to deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " - " + RpcResult.Message);
                         }
                     }
                     catch (Exception ex)
                     {
-                        ErrorMsg("Transaction FAILED - Withdrawal of " + amount + " EON from deposit account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Id + " [Exception] - " + ex.Message);
+                        ErrorMsg("Transaction FAILED - Change Deposit to " + amount + " EON failed for account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " [Exception] - " + ex.Message);
+
                     }
-                }
-                else
-                {
-                    //cancelled
+
+
                 }
             }
-            else
-            {
-                ErrorMsg("Error parsing the AMOUNT. Correct before retrying.");
-            }*/
-
-        }
+            
+            }
 
         private void TransactionsListViewRefreshButton_Click(object sender, RoutedEventArgs e)
         {
