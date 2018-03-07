@@ -21,7 +21,7 @@ namespace myEonWallet
             if (this.DoHandle)
             {
                 //Handling the exception within the UnhandledException handler.
-                MessageBox.Show(e.Exception.Message, "Exception Caught",
+                MessageBox.Show(e.Exception.Message, "Exception Caught : " + e.Exception.Message,
                                         MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Handled = true;
             }
