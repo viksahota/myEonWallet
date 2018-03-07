@@ -1,0 +1,59 @@
+﻿<Window x:Class="myEonWallet.NewAttachedAccountDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:myEonWallet"
+        mc:Ignorable="d"
+        Title="Create New Attached Account" Height="649.333" Width="622" Foreground="White" WindowStartupLocation="CenterScreen" Topmost="True" SizeToContent="WidthAndHeight" ResizeMode="NoResize" Icon="images/splashscreen.png" WindowStyle="None">
+    <Window.Background>
+        <ImageBrush ImageSource="images/SplashBackground.png" Opacity="1"/>
+    </Window.Background>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="AccountID_TB" HorizontalAlignment="Left" Height="25" Margin="150,413,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="154" VerticalContentAlignment="Center" FontSize="11" IsEnabled="False"/>
+        <TextBox x:Name="PublicKey_TB" HorizontalAlignment="Left" Height="25" Margin="150,383,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="421" VerticalContentAlignment="Center" FontSize="11" IsEnabled="False"/>
+        <Label Content="Account ID :" HorizontalAlignment="Left" Height="25" Margin="69,412,0,0" VerticalAlignment="Top" Width="76" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <Label Content="Public Key :" HorizontalAlignment="Left" Height="25" Margin="69,382,0,0" VerticalAlignment="Top" Width="76" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <Button x:Name="AddButton" HorizontalAlignment="Left" Height="47" Margin="500,588,0,0" VerticalAlignment="Top" Width="43" RenderTransformOrigin="1.227,0.431" Click="AddButton_Click" Background="{x:Null}" BorderBrush="{x:Null}" Visibility="Hidden">
+            <Image Source="images/checked.png">
+            </Image>
+        </Button>
+        <TextBox x:Name="Seed_TB" HorizontalAlignment="Left" Height="25" Margin="150,353,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="421" VerticalContentAlignment="Center" FontSize="11" IsEnabled="False"/>
+        <Label Content="Seed :" HorizontalAlignment="Left" Height="25" Margin="69,352,0,0" VerticalAlignment="Top" Width="76" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <Button x:Name="CreateAccountButton" Content="Create Account" HorizontalAlignment="Left" Height="25" Margin="159,312,0,0" VerticalAlignment="Top" Width="150" IsEnabled="False" Click="CreateAccountButton_Click"/>
+        <TextBlock HorizontalAlignment="Left" Height="37" Margin="10,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="599"><Run Text="You can create additional accounts (wallets with unique seed, public key and address) without needing to register your email again - the "/><Run Text="'"/><Run Text="attached"/><Run Text="'"/><Run Text=" accounts are created by your primary account."/></TextBlock>
+        <TextBox x:Name="Name_TB" HorizontalAlignment="Left" Height="25" Margin="420,121,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="151" VerticalContentAlignment="Center" TextChanged="Name_TB_TextChanged"/>
+        <Label Content="Name :" HorizontalAlignment="Left" Height="25" Margin="339,121,0,0" VerticalAlignment="Top" Width="76" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <TextBlock HorizontalAlignment="Left" Height="26" Margin="31,90,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="538" Text="1 - Provide a name for the new account so you can identify it easily in the list . (Exists only in this app)"/>
+        <TextBlock HorizontalAlignment="Left" Height="23" Margin="31,282,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="443"><Run Text="3"/><Run Text=" - Generate new account credentials"/><Run Text=" , or impo"/><Run Text="rt an account from an existing SEED"/></TextBlock>
+        <TextBlock HorizontalAlignment="Left" Height="34" Margin="31,464,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="535"><Run Text="4"/><Run Text=": Record the information "/><Run Text="above"/><Run Text=" somewhere safe, in case you need to recover the account in future"/></TextBlock>
+        <TextBlock HorizontalAlignment="Left" Height="21" Margin="31,513,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="519"><Run Text="5"/><Run Text=" - "/><Run Text="Provide the password for your PRIMARY account to and r"/><Run Text="egister this new account"/></TextBlock>
+        <Button x:Name="RegisterAccountButton" Content="Register Account" HorizontalAlignment="Left" Height="25" Margin="240,538,0,0" VerticalAlignment="Top" Width="117" IsEnabled="False" Click="RegisterAccountButton_Click"/>
+        <TextBlock HorizontalAlignment="Left" Height="66" Margin="31,573,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="471"><Run Text="6 "/><Run Text="- Your new account is created and ready to use"/><Run Text="."/><LineBreak/><LineBreak/><Run Foreground="#FFE10404" Text="&#x9;"/><Run Foreground="#FFE10404" Text="If you have recorded the details above, it is safe to now close this window"/></TextBlock>
+        <Button x:Name="CopyButton" Content="Copy to clipboard" HorizontalAlignment="Left" Margin="459,415,0,0" VerticalAlignment="Top" Width="111" AutomationProperties.HelpText="Copy the Seed/PubliKey/Account ID to the clipboard" Click="CopyButton_Click" Height="23" IsEnabled="False"/>
+        <Label Content="Create a new account" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" Width="519" Background="{x:Null}" Foreground="White" FontSize="20"/>
+        <Label Content="Wallet Encryption Password :" HorizontalAlignment="Left" Height="25" Margin="97,214,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <Label Content="Repeat to confirm :" HorizontalAlignment="Left" Height="25" Margin="97,241,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+        <PasswordBox x:Name="pwBox1" HorizontalAlignment="Left" Margin="272,217,0,0" VerticalAlignment="Top" Width="299" FontSize="14" IsEnabled="False"/>
+        <PasswordBox x:Name="pwBox2" HorizontalAlignment="Left" Margin="272,245,0,0" VerticalAlignment="Top" Width="299" FontSize="14" PasswordChanged="pwBox2_PasswordChanged" IsEnabled="False"/>
+        <TextBlock HorizontalAlignment="Left" Height="51" Margin="31,158,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="535"><Run Text="2"/><Run Text=" - "/><Run Text="Create a password to encrypt your wallet"/><Run Text=". "/><Run Foreground="#FFEA0404"/><LineBreak/><Run Foreground="#FFEA0404" Text="You MUST record this information, it will be required i"/><Run Foreground="#FFEA0404" Text="n future in order to send any transactions from this account"/></TextBlock>
+        <Button x:Name="CancelButton" HorizontalAlignment="Left" Height="47" Margin="555,588,0,0" VerticalAlignment="Top" Width="41" RenderTransformOrigin="1.227,0.431" Background="{x:Null}" BorderBrush="{x:Null}" Click="CancelButton_Click">
+            <Image Source="images/cancel.png"/>
+        </Button>
+        <PasswordBox x:Name="primaryPasswordPWBOX" HorizontalAlignment="Left" Margin="53,540,0,0" VerticalAlignment="Top" Width="160" FontSize="14" IsEnabled="False" PasswordChanged="primaryPasswordPWBOX_PasswordChanged"/>
+        <Label x:Name="ResultLabel" Content="" HorizontalAlignment="Left" Height="46" Margin="376,538,0,0" VerticalAlignment="Top" Width="227" VerticalContentAlignment="Center" Foreground="White"/>
+        <Button x:Name="ImportSeedButton" Content="Import From Seed (paste first below)" HorizontalAlignment="Left" Height="25" Margin="355,312,0,0" VerticalAlignment="Top" Width="208" Click="ImportSeedButton_Click" Foreground="White" Opacity="0.995" IsEnabled="False">
+            <Button.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="Black" Offset="0"/>
+                    <GradientStop Color="#FF5A2D2D" Offset="1"/>
+                </LinearGradientBrush>
+            </Button.Background>
+        </Button>
+        <Label Content="OR" HorizontalAlignment="Left" Height="25" Margin="319,312,0,0" VerticalAlignment="Top" Width="25" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+
+    </Grid>
+</Window>

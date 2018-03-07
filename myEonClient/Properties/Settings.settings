@@ -5,5 +5,17 @@
     <Setting Name="WalletsJson" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="EnableDebugLog" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="EnableErrorLog" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RecentConfirmedMax" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="CoreConfig_Peer" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://peer.testnet.eontechnology.org:9443</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

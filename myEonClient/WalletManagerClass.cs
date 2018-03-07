@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EonSharp;
+
 
 namespace myEonClient
 {
     public class WalletManagerClass
     {
         //collection of wallet objects which will be maintained and used
-        private List<WalletClass> WalletCollection;
+        //public ObservableCollection<WalletClass> WalletCollection;
+        public ObservableCollection<EonSharp.Wallet> WalletCollection;
 
         //constructor
         public WalletManagerClass()
@@ -21,9 +25,16 @@ namespace myEonClient
             ErrorEventEnable = false;
 
             //init the Wallet Collection list
-            WalletCollection = new List<WalletClass>();
+            WalletCollection = new ObservableCollection<EonSharp.Wallet>();
+
+            //byte[] privateKey = EonSharp.Generators.SeedGenerator.NewSeed();
+            //EonSharp.Wallet wallet = new EonSharp.Wallet("name", privateKey, "password");
             
 
+            //load the wallet info store in user settings
+            //LoadWallets();
+            //WalletManager.RestoreWalletList(@"C:\Temp\exscudo\myEonWallet_walletsBackup.json");
+            
         }
 
         #region Callback routines
@@ -55,56 +66,27 @@ namespace myEonClient
             }
         }
         #endregion
-        
-        #region GET WalletCollection information
-        //returns a censored copy of the WalletCollection (without SEED values)
-        public List<WalletClass> GetWalletCollection()
-        {
-            List<WalletClass> censoredCollection = new List<WalletClass>();
 
-            try
-            {
-                foreach (WalletClass wal in WalletCollection)
-                {
-                    WalletClass censoredWallet = new WalletClass
-                    {
-                        AccountID = wal.AccountID,
-                        AccountNumber = wal.AccountNumber,
-                        Balance = wal.Balance,
-                        Deposit = wal.Deposit,
-                        NickName = wal.NickName,
-                        PublicKey = wal.PublicKey,
-                        Seed = ""
-                    };
-                    censoredCollection.Add(censoredWallet);                    
-                }
-                DebugMsg("GetWalletCollection() OK");
-            }
-            catch(Exception ex)
-            {
-                ErrorMsg("GetWalletCollection() - Exception : " + ex);
-            }
-            
-            return censoredCollection;
-        }
+      
 
         //returns the number of wallets in WalletCollection
         public int GetWalletsCount()
         {
             return (WalletCollection.Count);
         }
-        #endregion
+
 
         #region ADD/REMOVE Wallet entries
 
         //add a wallet to the collection
-        public bool AddWallet(WalletClass wal)
+        public bool AddWallet(EonSharp.Wallet wal)
         {
             bool res = false;
             try
             {
                 WalletCollection.Add(wal);
-                DebugMsg("AddWallet() Added account " + wal.AccountID + " @ index " + WalletCollection.Count );
+                DebugMsg("AddWallet() Added account " + wal.Id + " @ index " + WalletCollection.Count);
+                SaveWallets();
                 res = true;
             }
             catch (Exception ex)
@@ -123,6 +105,7 @@ namespace myEonClient
             {
                 WalletCollection.Remove(WalletCollection[WalletIndex]);
                 DebugMsg("RemoveWallet() - Index " + WalletIndex + " removed");
+                SaveWallets();
                 res = true;
             }
             catch (Exception ex)
@@ -137,17 +120,33 @@ namespace myEonClient
 
         #region LOAD/SAVE/BACKUP/RESTORE/SERIALISE/DESERIALISE the WalletCollection
 
-        //load the wallets from ApplicationSettingsBase
-        public bool LoadWallets()
+        //load the wallets from ApplicationSettingsBase , gives exception on failure
+        public async void LoadWallets(myEonClient.MyEonClient eonClient)
         {
-            DeserialiseWalletCollection(Properties.Settings.Default.WalletsJson);
-            return true;
+                var deswallets = Properties.Settings.Default.WalletsJson.FromJsonToWallets();
+
+                WalletCollection.Clear();
+                foreach (Wallet wal in deswallets)
+                {
+                try
+                {
+                    await wal.RefreshAsync(eonClient.eonSharpClient);
+                } catch (Exception ex)
+                {
+                }
+                //wal.UnlockAccountDetails("gassman");
+                //wal.Information = new EonSharp.Api.Info();
+                //wal.Information.Amount = 0;
+                //wal.Information.Deposit = 0;
+                    WalletCollection.Add(wal);
+                }
+
         }
 
         //store the wallets to ApplicationSettingsBase
-        public bool SaveWallets()
+        private bool SaveWallets()
         {
-            Properties.Settings.Default.WalletsJson = SerialiseWalletCollection(); ;
+            Properties.Settings.Default.WalletsJson = WalletCollection.ToJson();
             Properties.Settings.Default.Save();
             return true;
         }
@@ -156,23 +155,20 @@ namespace myEonClient
         public bool BackupWalletList(string filePath)
         {
             bool res = false;
-            String js = SerialiseWalletCollection();
-
-            TextWriter writer = null;
+            
             try
             {
-                writer = new StreamWriter(filePath, false);
-                writer.Write(js);
+                using (var file = System.IO.File.OpenWrite(filePath))
+                {
+                    WalletCollection.ToJson(file);
+                }
+                
                 res = true;
                 DebugMsg("BackupWalletList() - Backed up to " + filePath);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ErrorMsg("BackupWalletList() - File write failed with exception : " + ex.Message);
-            }
-            finally
-            {
-                writer?.Close();
             }
 
             return res;
@@ -182,75 +178,44 @@ namespace myEonClient
         public bool RestoreWalletList(string filePath)
         {
             bool res = false;
-            string fileContents = "";
-            TextReader reader = null;
 
             try
             {
-                reader = new StreamReader(filePath);
-                fileContents = reader.ReadToEnd();
+                using (var file = System.IO.File.OpenRead(filePath))
+                {
+                    var deswallets = file.FromJsonToWallets();
 
-                DeserialiseWalletCollection(fileContents);
-
+                    WalletCollection.Clear();
+                    foreach (Wallet wal in deswallets)
+                    {
+                        WalletCollection.Add(wal);
+                    }
+                }
+                
+                SaveWallets();
                 DebugMsg("RestoreWalletList() - Restored from " + filePath);
                 res = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ErrorMsg("RestoreWalletList() - Raised Exception :" + ex.Message);
             }
-            finally
-            {
-                reader?.Close();
-            }
-                      
+
+
 
             return res;
         }
 
-        //serialise the WalletCollection
-        private string SerialiseWalletCollection()
+        //clears down the walletlist 
+        public bool ResetWalletList()
         {
-            String js = "[";
 
-            foreach (WalletClass wal in WalletCollection)
-            {
-                js += "{\"NickName\":\"" + wal.NickName + "\",\"Seed\":\"" + wal.Seed + "\",\"AccountNumber\":\"" + wal.AccountNumber + "\",\"AccountID\":\"" + wal.AccountID + "\",\"PublicKey\":\"" + wal.PublicKey + "\"},";
-            }
-            js.Remove(js.Length - 1, 1);
-            js += "]";
+            bool res = false;
+            WalletCollection.Clear();
+            SaveWallets();
+            res = true;
 
-            return (js);
-        }
-
-        //deserialise string and write to the WalletCollection
-        private void DeserialiseWalletCollection(string jsonString)
-        {
-            try
-            {
-                //regex to split into invididual json strings
-                Match walletMatches = Regex.Match(jsonString, @"{[^}]*}");
-
-                //parse each wallet into the WalletCollection
-                WalletCollection.Clear();
-                foreach (string walletJson in walletMatches.Groups)
-                {
-                    Match walletData = Regex.Match(walletJson, @"{""NickName"":""([^""]*)"",""Seed"":""([^""]*)"",""AccountNumber"":""([^""]*)"",""AccountID"":""([^""]*)"",""PublicKey"":""([^""]*)""}");
-                    WalletClass wal = new WalletClass
-                    {
-                        NickName = walletData.Groups[1].ToString(),
-                        Seed = walletData.Groups[2].ToString(),
-                        AccountNumber = walletData.Groups[3].ToString(),
-                        AccountID = walletData.Groups[4].ToString(),
-                        PublicKey = walletData.Groups[5].ToString()
-                    };
-                    WalletCollection.Add(wal);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorMsg("DeserialiseWalletCollection() - Raised Exception :" + ex.Message);
-            }
+            return res;
         }
 
         #endregion

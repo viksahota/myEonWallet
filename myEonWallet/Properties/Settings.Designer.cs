@@ -8,22 +8,54 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace myEonWallet.Properties
-{
-
-
+namespace myEonWallet.Properties {
+    
+    
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
-    {
-
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+        
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-
-        public static Settings Default
-        {
-            get
-            {
+        
+        public static Settings Default {
+            get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"[{""NickName"":""Primary"",""Seed"":""91814f1ba86229120fbaf74066dba1cc7850667fa2bb9d11ae37f808135118c4"",""AccountID"":""EON-RUV94-ZTJPS-NPCYZ"",""PublicKey"":""37109ef5182b7f9efd6eb3924a722c59c308df36f1050a67c7b6439de5305338""},{""NickName"":""account2"",""Seed"":""52f0d7ed03d2ec526e2f9f82cc0b87604a2cb7404e778b8d5f9364a24102e146"",""AccountID"":""EON-JEP27-E638L-7VN3N"",""PublicKey"":""16f334bb97a762a3e384edc7eba87bfa43b7841373d62fc959f064d56f24e0f5""}]")]
+        public string WalletsJson {
+            get {
+                return ((string)(this["WalletsJson"]));
+            }
+            set {
+                this["WalletsJson"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int BalanceSyncPeriod {
+            get {
+                return ((int)(this["BalanceSyncPeriod"]));
+            }
+            set {
+                this["BalanceSyncPeriod"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public int TransactionHistoryMax {
+            get {
+                return ((int)(this["TransactionHistoryMax"]));
+            }
+            set {
+                this["TransactionHistoryMax"] = value;
             }
         }
     }

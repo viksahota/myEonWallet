@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "myEonClient", "myEonClient\myEonClient.csproj", "{F827F792-5BE0-48FF-991A-1F1FF461767C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "myEonWallet", "myEonWallet\myEonWallet.csproj", "{BD631584-3425-42B6-9D39-867A405D45E1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F827F792-5BE0-48FF-991A-1F1FF461767C} = {F827F792-5BE0-48FF-991A-1F1FF461767C}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

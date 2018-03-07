@@ -34,5 +34,53 @@ namespace myEonClient.Properties {
                 this["WalletsJson"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool EnableDebugLog {
+            get {
+                return ((bool)(this["EnableDebugLog"]));
+            }
+            set {
+                this["EnableDebugLog"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool EnableErrorLog {
+            get {
+                return ((bool)(this["EnableErrorLog"]));
+            }
+            set {
+                this["EnableErrorLog"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int RecentConfirmedMax {
+            get {
+                return ((int)(this["RecentConfirmedMax"]));
+            }
+            set {
+                this["RecentConfirmedMax"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://peer.testnet.eontechnology.org:9443")]
+        public string CoreConfig_Peer {
+            get {
+                return ((string)(this["CoreConfig_Peer"]));
+            }
+            set {
+                this["CoreConfig_Peer"] = value;
+            }
+        }
     }
 }
