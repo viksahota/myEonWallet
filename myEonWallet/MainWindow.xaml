@@ -213,8 +213,8 @@
                         <ListView Margin="10,10,4.333,32" x:Name="AccountListView" FontSize="10" SelectionChanged="AccountListView_SelectionChanged" IsSynchronizedWithCurrentItem="True" ToolTip="Select an account">
                             <ListView.View>
                                 <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
-                                    <GridViewColumn Header="Name" Width="70" DisplayMemberBinding="{Binding Name}" />
-                                    <GridViewColumn Header="AccountID" Width="140" DisplayMemberBinding="{Binding AccountDetails.AccountId}" />
+                                    <GridViewColumn Header="Name" Width="65" DisplayMemberBinding="{Binding Name}" />
+                                    <GridViewColumn Header="Account ID" Width="145" DisplayMemberBinding="{Binding AccountDetails.AccountId}" />
                                     <GridViewColumn Header="Balance" Width="92" DisplayMemberBinding="{Binding Information.Amount, Converter={StaticResource MEONConverter}}" />
                                     <GridViewColumn Header="Deposit" Width="92" DisplayMemberBinding="{Binding Information.Deposit,Converter={StaticResource MEONConverter}}" />
                                 </GridView>
@@ -270,7 +270,7 @@
                                 <GridViewColumn Header="Sender" Width="160" DisplayMemberBinding="{Binding Sender}" />
                                 <GridViewColumn Header="Recipient" Width="160" DisplayMemberBinding="{Binding AttachedRecipient}" />
                                 <GridViewColumn Header="Amount" Width="120" DisplayMemberBinding="{Binding AttachedAmount, StringFormat=N6}" />
-                                <GridViewColumn Header="ID" Width="150" DisplayMemberBinding="{Binding Id}" />
+                                <GridViewColumn Header="Transaction ID" Width="160" DisplayMemberBinding="{Binding Id}" />
                                 <GridViewColumn Header="Status" Width="120" DisplayMemberBinding="{Binding Status}" />
                             </GridView>
                         </ListView.View>
