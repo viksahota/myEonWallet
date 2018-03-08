@@ -172,7 +172,7 @@ namespace myEonWallet
             this.Close();
         }
 
-        private void ImportSeedButton_Click(object sender, RoutedEventArgs e)
+        private async void ImportSeedButton_Click(object sender, RoutedEventArgs e)
         {
             if ((Seed_TB.Text.Length == 64) && (pwBox1.Password.Length >= 5) && (pwBox1.Password == pwBox2.Password))
             {
@@ -180,7 +180,19 @@ namespace myEonWallet
 
                 var seed = EonSharp.Helpers.HexHelper.HexStringToByteArray(Seed_TB.Text);
 
-                newWallet = new Wallet("Primary", seed, pwBox1.Password);
+                newWallet = new Wallet(Name_TB.Text, seed, pwBox1.Password);
+
+                try
+                {
+                    await newWallet.RefreshAsync(eonClient.eonSharpClient);
+                }
+                catch
+                {
+                    newWallet.Information = new EonSharp.Api.Info();
+                    newWallet.Information.Amount = 0;
+                    newWallet.Information.Deposit = 0;
+                }
+
 
                 AccountID_TB.Text = newWallet.AccountDetails.AccountId;
                 PublicKey_TB.Text = newWallet.AccountDetails.PublicKey;

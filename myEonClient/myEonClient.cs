@@ -167,31 +167,21 @@ namespace myEonClient
             ErrorEventEnable = Properties.Settings.Default.EnableErrorLog;
             RecentTransactions_ConfirmedMax = Properties.Settings.Default.RecentConfirmedMax;
 
-            
-            
             //store the UI syncronisation context
             UIContext = SynchronizationContext.Current;
-
         }
 
       
         public void Start()
-        {
-            
+        {            
             //pass down the debug settings to walletlist, the load the wallet data from user settings
             WalletManager.DebugEventEnable = DebugEventEnable;
             WalletManager.ErrorEventEnable = ErrorEventEnable;
-
-            //if (!WalletManager.LoadWallets())
-            //{
-            //    MessageBox.Show("Wallet data in user settings could not be loaded, it may be corrupt or first-run - do you want to start afresh? (will delete all existing wallets!)", "myEonWallet : wallet data issue", MessageBoxButton.YesNoCancel);
-            //}
 
             //start the eon thread
             _eonThread = new Thread(EonThreadStart);
             _eonThread.SetApartmentState(ApartmentState.STA);
             _eonThread.Start();
-
         }
 
         public async void InitEonSharp()
@@ -203,14 +193,13 @@ namespace myEonClient
 
                 EonClient.ClassMapper[typeof(EonSharp.Network.ITransportContext)] = new ActivatorDescriptor[]
                     {
-        new ActivatorDescriptor(typeof(EonSharp.Network.Transports.HttpTransportClient)),
-        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted" } })
+                        new ActivatorDescriptor(typeof(EonSharp.Network.Transports.HttpTransportClient)),
+                        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted" } })
                     };
 
                 eonSharpClient = new EonClient(coreConfig.Peer);
                 var logger = eonSharpClient.TransportContext as EonSharp.Logging.ILog;
                 logger.LogChanged += (s, e) => DebugMsg(e.ToString());
-
                 await eonSharpClient.UpdateBlockchainDetails();
 
             }
@@ -242,22 +231,13 @@ namespace myEonClient
         {
             //allow the form to open
             Thread.Sleep(50);
-            //DebugMsg("~~ myEonClient thread-start ~~\r\n");
-
-//            Thread.Sleep(500);
-           
-
+ 
             // force update the account list and balances
             UpdateBalances(true);
-
-
-
-
-
+            
             int counter = 0;
             DateTime lastBalancePollTime = DateTime.Now;
-
-
+            
             while (_eonThreadRun)
             {
                 Thread.Sleep(50);
@@ -271,7 +251,7 @@ namespace myEonClient
                         if (_eonThreadRun && !PauseBalanceUpdateFlag) UpdateBalances(false);
                         lastBalancePollTime = DateTime.Now;
 
-                        UpdateTransactionSummary(selectedIndex);
+                        if (selectedIndex!=-1) UpdateTransactionSummary(selectedIndex);
 
                         //every 10th iteration garbage collect
                         counter++;
@@ -288,17 +268,13 @@ namespace myEonClient
                 }
 
             }
-
             ErrorMsg("<eonThread ended>");
-
         }
 
         //update the balances of all accounts and despatch update to consumer
         public async void UpdateBalances(bool UpdateNow)
         {
             bool change = false;
-
-            //DebugMsg("<Balance update>");
 
             //get a balance update for each wallet
             foreach (Wallet wal in WalletManager.WalletCollection)
@@ -315,19 +291,7 @@ namespace myEonClient
                         oldDeposit = wal.Information.Deposit;
                     }
 
-                    //try
-                    //{
-                        await wal.RefreshAsync(eonSharpClient);
-                    /*}
-                    catch(Exception ex)
-                    {
-                        if (wal.Information == null)
-                        {
-                            wal.Information = new EonSharp.Api.Info();
-                            wal.Information.Amount = 0;
-                            wal.Information.Deposit = 0;
-                        }
-                    }*/
+                    await wal.RefreshAsync(eonSharpClient);
 
                     //check for a change in amount or deposit, inform the wallet to update the display if necessary.
                     if (oldAmount != wal.Information.Amount)
@@ -346,7 +310,7 @@ namespace myEonClient
             }
 
             //callback to the consumer to update the main balance/deposit display since an update occured
-            if (UpdateNow | change) BalanceUpdateMsg("");
+            if ((UpdateNow | change)&&(WalletManager.WalletCollection.Count>0)) BalanceUpdateMsg("");
 
         }
 
@@ -468,8 +432,7 @@ namespace myEonClient
                 ErrorMsg("Transaction_Register() - Exception : " + ex.Message);
                 RpcResult.Result = false;
                 throw ex;
-            }
-            
+            }            
             return RpcResult;
         }
 
@@ -503,15 +466,11 @@ namespace myEonClient
 
             try
             {
-
-                    //var seedArray = EonSharp.Helpers.HexHelper.HexStringToByteArray(WalletManager.WalletCollection[index].Seed);
-                    //var account = new EonSharp.Generators.AccountGenerator(seedArray);
                 Wallet senderWallet = WalletManager.WalletCollection[index];
                 EonSharp.Api.Transactions.Payment payment = new EonSharp.Api.Transactions.Payment(senderWallet.AccountDetails.AccountId, (long)amount, recipient, 3600, 10, 1);
-                    payment.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
-                    await eonSharpClient.Bot.Transactions.PutTransactionAsync(payment);
-                    RpcResult.Result = true;
-
+                payment.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(payment);
+                RpcResult.Result = true;
             }
             catch (Exception ex)
             {
@@ -569,14 +528,10 @@ namespace myEonClient
         {
             try
             {
-
-                //var seedArray = EonSharp.Helpers.HexHelper.HexStringToByteArray(WalletManager.WalletCollection[accountIndex].Seed);
-                //var account = new EonSharp.Generators.AccountGenerator(seedArray);
                 Wallet currentWallet = WalletManager.WalletCollection[accountIndex];
 
                 IEnumerable<EonSharp.Api.Transaction> res = await eonSharpClient.Bot.History.GetCommittedPageAsync(currentWallet.AccountDetails.AccountId, pageNumber);
                 Array txArray = res.ToArray<EonSharp.Api.Transaction>();
-
 
                 foreach (EonSharp.Api.Transaction tx in txArray)
                 {
@@ -623,23 +578,18 @@ namespace myEonClient
 
         public async void UpdateTransactionSummary(int index)
         {
-
             //get the uncommited transactions and the first page of commited transactions
             try
             {
                 IEnumerable<EonSharp.Api.Transaction> uList = await eonSharpClient.Bot.History.GetUncommittedAsync(WalletManager.WalletCollection[index].AccountDetails.AccountId);
                 IEnumerable<EonSharp.Api.Transaction> cList = await eonSharpClient.Bot.History.GetCommittedPageAsync(WalletManager.WalletCollection[index].AccountDetails.AccountId, 0);
-
                 uList = uList.Reverse();
-
-                //cList.Reverse();
 
                 int targetIndex = 0;
 
                 foreach (EonSharp.Api.Transaction tx in uList)
                 {
                     TransactionSummaryItemClass nT = new TransactionSummaryItemClass();
-
                     nT.Id = tx.Id;
                     nT.Sender = tx.Sender;
                     nT.Status = "Pending";
@@ -669,21 +619,16 @@ namespace myEonClient
                     if (TransactionHistory.SummaryTransactionCollection.Count < (targetIndex + 1)) UIContext.Send(x => TransactionHistory.SummaryTransactionCollection.Add(nT), null);
                     else if (nT != TransactionHistory.SummaryTransactionCollection[targetIndex]) UIContext.Send(x => TransactionHistory.SummaryTransactionCollection[targetIndex] = nT, null);
                     targetIndex++;
-
-                    //UIContext.Send(x => TransactionHistory.SummaryTransactionCollection.Add(nT), null);
                 }
 
                 //limits the number of confirmed transactions shown
                 int limitCounter = 0;
-
-
 
                 foreach (EonSharp.Api.Transaction tx in cList)
                 {
                     if (limitCounter >= RecentTransactions_ConfirmedMax) break;
 
                     TransactionSummaryItemClass nT = new TransactionSummaryItemClass();
-
                     nT.Id = tx.Id;
                     nT.Sender = tx.Sender;
                     nT.Status = "Confirmed";
@@ -716,37 +661,30 @@ namespace myEonClient
 
                     limitCounter++;
                 }
-
-
+                
                 //remove any entries beyond this index in the SummaryTransactionCollection , stale data
                 while (TransactionHistory.SummaryTransactionCollection.Count > targetIndex)
                 {
                     //remove the last entry
                     UIContext.Send(x => TransactionHistory.SummaryTransactionCollection.RemoveAt(TransactionHistory.SummaryTransactionCollection.Count - 1), null);
-
                 }
             }
             catch(Exception ex)
             {
                 DebugMsg("UpdateTransactionSummary() raised exception : " + ex.Message);
             }
-
         }
 
 
         public Wallet CreateAccount(string name, string password)
         {
             Wallet newWal = new Wallet(name, password);
-
             string seed = EonSharp.Helpers.HexHelper.ArrayToHexString(newWal.GetPrivateKey(password));
 
             try
-            {
-                
+            {                
                 newWal.UnlockAccountDetails(password);
-
                 newWal.RefreshAsync(eonSharpClient);
-
                 DebugMsg("CreateAccount() - New AccountID : " + newWal.AccountDetails.AccountId);
                 DebugMsg("CreateAccount() -     Seed : " + seed);
                 DebugMsg("CreateAccount() -     Public Key : " + newWal.AccountDetails.PublicKey);
@@ -755,7 +693,6 @@ namespace myEonClient
             {
                 ErrorMsg("CreateAccount() - Exception : " + ex.Message);
             }
-
             return newWal;
         }
 

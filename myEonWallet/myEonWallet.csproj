@@ -28,10 +28,10 @@
     <SupportUrl>http://eondev-wiki.info/doku.php%3fid=myeonwallet</SupportUrl>
     <ErrorReportUrl>http://eondev-wiki.info/doku.php%3fid=myeonwallet</ErrorReportUrl>
     <ProductName>myEonWallet</ProductName>
-    <PublisherName>Vikas Sahota</PublisherName>
+    <PublisherName>EONDev Community, Exscudo slack %40gassman</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>myEonWalletInstaller.htm</WebPage>
-    <ApplicationRevision>13</ApplicationRevision>
+    <ApplicationRevision>18</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>

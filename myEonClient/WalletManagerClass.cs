@@ -26,14 +26,6 @@ namespace myEonClient
 
             //init the Wallet Collection list
             WalletCollection = new ObservableCollection<EonSharp.Wallet>();
-
-            //byte[] privateKey = EonSharp.Generators.SeedGenerator.NewSeed();
-            //EonSharp.Wallet wallet = new EonSharp.Wallet("name", privateKey, "password");
-            
-
-            //load the wallet info store in user settings
-            //LoadWallets();
-            //WalletManager.RestoreWalletList(@"C:\Temp\exscudo\myEonWallet_walletsBackup.json");
             
         }
 
@@ -66,8 +58,6 @@ namespace myEonClient
             }
         }
         #endregion
-
-      
 
         //returns the number of wallets in WalletCollection
         public int GetWalletsCount()
@@ -130,16 +120,13 @@ namespace myEonClient
                 foreach (Wallet wal in deswallets)
                 {
                 try
-                {
-                    await wal.RefreshAsync(eonClient.eonSharpClient);
-                } catch (Exception ex)
-                {
-                }
-                //wal.UnlockAccountDetails("gassman");
-                //wal.Information = new EonSharp.Api.Info();
-                //wal.Information.Amount = 0;
-                //wal.Information.Deposit = 0;
-                    WalletCollection.Add(wal);
+                    {
+                        await wal.RefreshAsync(eonClient.eonSharpClient);
+                    }
+                catch (Exception ex)
+                    {
+                    }
+                WalletCollection.Add(wal);
                 }
 
         }
@@ -171,7 +158,6 @@ namespace myEonClient
             {
                 ErrorMsg("BackupWalletList() - File write failed with exception : " + ex.Message);
             }
-
             return res;
         }
 
@@ -210,7 +196,6 @@ namespace myEonClient
         //clears down the walletlist 
         public bool ResetWalletList()
         {
-
             bool res = false;
             WalletCollection.Clear();
             SaveWallets();

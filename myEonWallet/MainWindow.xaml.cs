@@ -46,12 +46,6 @@ namespace myEonWallet
         public bool ErrorEnable_Checked
         { get; set; }
 
-        //ICollectionView view;
-
-        //ObservableCollection<MyEonClient.walletDetails> Wallet_items;
-
-        //private int currentAccountIndex = 0;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -66,23 +60,19 @@ namespace myEonWallet
             DebugViewBusy = false;
             debugViewQueue = new Queue<DebugViewItem>();
 
-
-        eonClient.BalanceUpdateEvent += (sender, msg) => { UpdatedBalance_Handler(msg); };
-            eonClient.BalanceUpdatePeriod = Properties.Settings.Default.BalanceSyncPeriod;
-            
+            eonClient.BalanceUpdateEvent += (sender, msg) => { UpdatedBalance_Handler(msg); };
+            eonClient.BalanceUpdatePeriod = Properties.Settings.Default.BalanceSyncPeriod;            
 
             //set the datacontext of the config items
             EnableDebugCheckBox.DataContext = eonClient;
-            EnableErrorCheckBox.DataContext = eonClient;
+            EnableErrorsCheckBox.DataContext = eonClient;
 
             Config_TransactionHistoryMax_Adjustor.DataContext = eonClient;
             Config_TransactionHistoryMax_Adjustor.Setup(Properties.Settings.Default.TransactionHistoryMax, 20, 2000000, 20, "TXHistoryMax");
             Config_TransactionHistoryMax_Adjustor.ConfigChangeEvent += (sender, msg) => { ConfigChangeHandler(msg); };
 
-
             Config_BalanceSyncPeriod_Adjustor.Setup(Properties.Settings.Default.BalanceSyncPeriod, 5, 60, 1, "BalanceSyncPeriod");
             Config_BalanceSyncPeriod_Adjustor.ConfigChangeEvent += (sender, msg) => { ConfigChangeHandler(msg); };
-
 
             Config_TransactionRecentConfirmedMax.DataContext = eonClient;
             Config_TransactionRecentConfirmedMax.Setup(eonClient.RecentTransactions_ConfirmedMax, 3, 100, 1, "RecentConfirmedMax");   
@@ -92,11 +82,6 @@ namespace myEonWallet
             eonClient.coreConfig.PeerValidatedAddressEvent += (sender, msg) => { PeerValidateHandler(msg); };
 
             MessageBoxResult result = new MessageBoxResult();
-
-            //eonClient.WalletManager.ResetWalletList();
-            //byte[] privateKey = EonSharp.Helpers.HexHelper.HexStringToByteArray("67244C84627AC20DA7197F0B972894F85CA2528174F45870F2EEE369F9DCF59C");
-            //Wallet primaryWallet = new Wallet("Primary", privateKey, "gassman");
-            //eonClient.WalletManager.AddWallet(primaryWallet);
 
             try
             {
@@ -116,47 +101,17 @@ namespace myEonWallet
                         break;
                 }
             }
-            
-
 
             eonClient.Start();
             
             //select the first account in list
             AccountListView.SelectedIndex = 0;
-            //AccountListView.Focus();
-            //AccountListView.ItemsSource = Wallet_items;
             AccountListView.ItemsSource = eonClient.WalletManager.WalletCollection;
-
             TransactionsListView.ItemsSource = eonClient.TransactionHistory.ConfirmedTransactionCollection;
-
-            TransactionSummaryListView.ItemsSource = eonClient.TransactionHistory.SummaryTransactionCollection;
-
-            //debugTB.DataContext = eonClient.DebugInfo.DebugString;
-                        
+            TransactionSummaryListView.ItemsSource = eonClient.TransactionHistory.SummaryTransactionCollection;                        
             AccountListView_SelectionChanged(null, null);
 
-
-            //this.Config_BalanceSyncPeriod_Adjustor.DataContext = Properties.Settings.Default.BalanceSyncPeriod;
-            //this.Config_TransactionHistoryMax_Adjustor.DataContext = Properties.Settings.Default.TransactionHistoryMax;
-
             }
-
-        /*public static string ByteArrayToString(byte[] ba)
-        {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-        }*/
-
-        /*public static byte[] StringToByteArray(String hex)
-        {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2)
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return bytes;
-        }*/
 
         private void PeerValidateHandler(string msg)
         {
@@ -189,11 +144,8 @@ namespace myEonWallet
                     //update the debug viewer on main tab
                     debugViewQueue.Enqueue(new DebugViewItem(newline, true));
                     if (!DebugViewBusy) ShowDebugMessage();
-
                 }));
             }
-
-
         }
 
         //redirect errors to debug for now
@@ -219,21 +171,7 @@ namespace myEonWallet
                 }));
             }
         }
-        /*
-        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
-        {
-            // Log the exception, display it, etc
-            MessageBox.Show("ThreadException error.\r\n\r\nPlease submit screenshot for debug : \r\n\r\n" + e.Exception.Message, "Error - Terminating....");
-        }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-
-            // Log the exception, display it, etc
-            MessageBox.Show("Unhandled Exception error.\r\n\r\nPlease submit screenshot for debug : \r\n\r\n" + (e.ExceptionObject as Exception).Message, "Error - Terminating....");
-
-        }
-        */
         //config change message handler, coming from numerical up/down usercontrol
         private void ConfigChangeHandler(string msg)
         {
@@ -248,8 +186,6 @@ namespace myEonWallet
 
                 }));
             }
-
-
         }
 
         //updates the account list with account list  or balance/deposit changes
@@ -351,17 +287,6 @@ namespace myEonWallet
 
                 //da.RepeatBehavior=new RepeatBehavior(3);
                 TransactionDetailGroupbox.BeginAnimation(OpacityProperty, da);
-                /*if(TransactionDetailGroupbox.Opacity == 100)
-                {
-                    while(TransactionDetailGroupbox.Opacity!=0)
-                    {
-                        TransactionDetailGroupbox.Opacity--;
-                        Thread.Sleep(50);
-                    }
-                }*/
-
-
-
 
                 //update the dialog
                 string txID = eonClient.TransactionHistory.ConfirmedTransactionCollection[TransactionsListView.SelectedIndex].Id;
@@ -382,18 +307,7 @@ namespace myEonWallet
                 da.To = 1;
                 da.Duration = new Duration(TimeSpan.FromSeconds(1));
                 da.AutoReverse = false;
-
-                //da.RepeatBehavior=new RepeatBehavior(3);
                 TransactionDetailGroupbox.BeginAnimation(OpacityProperty, da);
-                /*if (TransactionDetailGroupbox.Opacity == 0)
-                {
-                    while (TransactionDetailGroupbox.Opacity != 100)
-                    {
-                        TransactionDetailGroupbox.Opacity++;
-                        Thread.Sleep(50);
-                    }
-                }*/
-
             }
 
 
@@ -438,13 +352,9 @@ namespace myEonWallet
 
         private void myEonWallet_Closing(object sender, CancelEventArgs e)
         {
-            
-
             eonClient._eonThreadRun = false;
             eonClient.ShutDownFlag = true;
             ShutDownFlag = true;
-
-
         }
 
         private void CreateBackupMenuItem_Click(object sender, RoutedEventArgs e)
@@ -483,14 +393,10 @@ namespace myEonWallet
                 DebugMsg("Error exporting config file  : " + ex.Message + "\r\n");
 
             }
-
-
         }
 
         private void RestoreBackupMenuItem_Click(object sender, RoutedEventArgs e)
         {
-
-
             OpenFileDialog importDg = new OpenFileDialog
             {
                 InitialDirectory = "c:\\",
@@ -537,31 +443,14 @@ namespace myEonWallet
                     
                     break;
             }
-
-            
-
-
-
         }
 
         private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
         {
-
             //if primary needs setting up
             if (eonClient.Wallets_GetCount() < 1)
             {
-
-                //create new primary wallet
-                //WalletClass primaryWallet = eonClient.CreateAccount("Primary");
-
-                //eonClient.Wallets_Add(primaryWallet);
-                //SaveWalletList();
-
-                //alert user to register the new primary account
                 NewPrimaryAccountDialog nW = new NewPrimaryAccountDialog(eonClient);
-                //nW.AccountID_TB.Text = primaryWallet.AccountID;
-                //nW.PublicKey_TB.Text = primaryWallet.PublicKey;
-                //nW.Seed_TB.Text = primaryWallet.Seed;
                 nW.ShowDialog();
 
             }
@@ -602,12 +491,11 @@ namespace myEonWallet
             {
                 decimal amount = 0;
 
-                DepositConfirm dConfirm = new DepositConfirm("Adjust the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + "?\r\n\r\n1. Enter the new deposit amount below\r\n2. Supply the password for your encrypted wallet\r\n3. Press YES to confirm and place this transaction on the EON blockchain");
+                DepositConfirm dConfirm = new DepositConfirm("Adjust the deposit balance of account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " ?\r\n\r\n1. Enter the new deposit amount below\r\n2. Supply the password for your encrypted wallet\r\n3. Press YES to confirm and place this transaction on the EON blockchain");
                 dConfirm.DepositAmountTB.Text = ((decimal)eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Deposit / 1000000).ToString();
 
                 if ((bool)dConfirm.ShowDialog())
                 {
-
                     try
                     {
                         amount = decimal.Parse(dConfirm.DepositAmountTB.Text);
@@ -627,8 +515,6 @@ namespace myEonWallet
                         ErrorMsg("Transaction FAILED - Change Deposit to " + amount + " EON failed for account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " [Exception] - " + ex.Message);
 
                     }
-
-
                 }
             }
             
@@ -636,51 +522,15 @@ namespace myEonWallet
 
         private void TransactionsListViewRefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            DebugMsg("Transactions refresh!");
+            DebugMsg("Transactions view refreshed");
             eonClient.GetTransactions(AccountListView.SelectedIndex, Properties.Settings.Default.TransactionHistoryMax/20);
-        }
-
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void TransactionSummaryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
         }
 
         //copy the rx address to clipboard
         private void AddressCopyButton_Click(object sender, RoutedEventArgs e)
         {
             string iText = (string)SelectedAccountAddress_LBL.Content;
-
             Clipboard.SetText(iText);
-        }
-
-        private void TestButton_Click(object sender, RoutedEventArgs e)
-        {
-            //eonClient.WalletManager.RemoveWallet(2);
-            //eonClient.eonClientCore.testTX();
-            //eonClient.UpdateTransactionSummary(AccountListView.SelectedIndex);
-            //eonClient.eonClientCore.GetInformation(eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountID);
-            // DebugInfo.DebugString = "TEST!!!";
-            // EonSharp.Api.Info accountInfo = await eonClient.Bot.Accounts.GetInformation("EON-QWZVC-W6HDQ-WQ4BU");
-            //await getInfoAsync("EON-RTQJW-AND3F-GA8JR");
-
-            // var accountInfo = await Bot.Accounts.GetStateAsync("EON-RTQJW-AND3F-GA8JR");
-
-            MsgBoxYesNo msgbox = new MsgBoxYesNo("You are about to send 5 EON from EON-QWZVC-W6HDQ-WQ4BU to EON-QWZVC-W6HDQ-WQ4BU.  Press YES to confirm and place this transaction on the EON blockchain");
-            if ((bool)msgbox.ShowDialog())
-            {
-                MessageBox.Show("Transaction send : Success");
-            }
-            else
-            {
-                MessageBox.Show("Transaction send : Fail");
-            }
-
-
         }
 
         private void DefaultPeerButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -724,9 +574,7 @@ namespace myEonWallet
             if (TransactionsListView.SelectedIndex != -1)
             {
                 string recipientID = eonClient.TransactionHistory.ConfirmedTransactionCollection[TransactionsListView.SelectedIndex].AttachedRecipient;
-
                 string uri = "https://testnet.eontechnology.org/browser/#/address/" + recipientID;
-
                 Process.Start(uri);
             }
         }
@@ -783,12 +631,6 @@ namespace myEonWallet
             Process.Start("https://eontechnology.org/");
         }
 
-
-        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
-        
     }
 
     //used to convert MEON to EON during xaml binding

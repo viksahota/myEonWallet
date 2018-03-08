@@ -199,7 +199,7 @@
             <StackPanel/>
         </DockPanel>
 
-        <TabControl x:Name="tabControl" HorizontalAlignment="Left" Margin="13,34,0,0" Width="1057" Height="724" VerticalAlignment="Top" Opacity="0.865" Background="#FF004533" SelectionChanged="tabControl_SelectionChanged">
+        <TabControl x:Name="tabControl" HorizontalAlignment="Left" Margin="13,34,0,0" Width="1057" Height="724" VerticalAlignment="Top" Opacity="0.865" Background="#FF004533">
             <TabItem Header="Wallet">
                 <Grid Margin="5,5,5.333,-2" RenderTransformOrigin="0.5,0.5" Height="693" VerticalAlignment="Top">
                     <Grid.RowDefinitions>
@@ -243,7 +243,7 @@
                         <Image Height="23" Width="21" Source="images/plus.png" RenderTransformOrigin="0.5,0.514"/>
                     </Button>
                     <Label Content="Recent Transactions" HorizontalAlignment="Left" Foreground="White" Margin="10,305,0,351.333" FontSize="20"/>
-                    <ListView Margin="10,347,10.333,0" x:Name="TransactionSummaryListView" FontSize="10" IsSynchronizedWithCurrentItem="True" Height="336" VerticalAlignment="Top" Background="#FF052719" Foreground="White" SelectionMode="Single" SelectionChanged="TransactionSummaryListView_SelectionChanged" Grid.ColumnSpan="2">
+                    <ListView Margin="10,347,10.333,0" x:Name="TransactionSummaryListView" FontSize="10" IsSynchronizedWithCurrentItem="True" Height="336" VerticalAlignment="Top" Background="#FF052719" Foreground="White" SelectionMode="Single" Grid.ColumnSpan="2">
 
                         <ListView.ItemContainerStyle>
                             <Style TargetType="{x:Type ListViewItem}">
@@ -276,14 +276,14 @@
                         </ListView.View>
                     </ListView>
                     <Label Content="Account Address :" HorizontalAlignment="Left" Margin="246,175,0,0" VerticalAlignment="Top" Foreground="White" Cursor="IBeam" Grid.Column="1"/>
-                    <Label x:Name="SelectedAccountAddress_LBL" Content="-" HorizontalAlignment="Left" Margin="198,202,0,0" VerticalAlignment="Top" Foreground="White" Cursor="IBeam" Width="200" HorizontalContentAlignment="Center" FontSize="16" Grid.Column="1" ToolTip="The Account ID of the SELECTED account.  You can receive funds into this account on this address."/>
+                    <Label x:Name="SelectedAccountAddress_LBL" Content="-" HorizontalAlignment="Left" Margin="189,202,0,0" VerticalAlignment="Top" Foreground="White" Cursor="IBeam" Width="217" HorizontalContentAlignment="Center" FontSize="14" Grid.Column="1" ToolTip="The Account ID of the SELECTED account.  You can receive funds into this account on this address."/>
                     <Button x:Name="SendButton" HorizontalAlignment="Left" Margin="599,237,0,0" VerticalAlignment="Top" Width="30" FontSize="10" Click="SendButton_Click" Grid.Column="1" Height="32" Background="{x:Null}" BorderBrush="{x:Null}" ToolTip="Send Payment">
                         <Image Source="images/send.png"/>
                     </Button>
                     <GroupBox x:Name="DebugViewGroupBox" Grid.ColumnSpan="2" Header=" Debug information" HorizontalAlignment="Left" Height="132" Margin="19,545,0,0" VerticalAlignment="Top" Width="1004" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}">
                         <TextBlock x:Name="DebugViewerTB" HorizontalAlignment="Left" Height="100" Margin="10,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="976" Foreground="White" FontWeight="Bold"/>
                     </GroupBox>
-                    <Label Content="= Total EON :" HorizontalAlignment="Left" Margin="609,38,0,0" VerticalAlignment="Top" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="99" Foreground="White" Grid.Column="1"/>
+                    <Label Content="= Total EON" HorizontalAlignment="Left" Margin="609,38,0,0" VerticalAlignment="Top" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="99" Foreground="White" Grid.Column="1"/>
                     <Label x:Name="TotalEON_LBL" Content="0" HorizontalAlignment="Left" Margin="583,70,0,0" VerticalAlignment="Top" Width="160" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" Foreground="White" Grid.Column="1" ToolTip="The current deposit (staked) balance of the selected account" Height="27"/>
 
                 </Grid>
@@ -372,10 +372,10 @@
                         <local:NumericalUpDownControl x:Name="Config_TransactionHistoryMax_Adjustor" Margin="21,28,0,-2.333" Foreground="{x:Null}" HorizontalAlignment="Left" Width="79" FontWeight="Bold" ToolTip="Limits the number of transactions shown in the Transactions History."/>
                     </StackPanel>
 
-                    <CheckBox x:Name="EnableDebugCheckBox" IsChecked="{Binding DebugEventEnable}"  Margin="113,225,791,449" Checked="CheckBox_Checked" ToolTip="Check to enable debug log output">
+                    <CheckBox x:Name="EnableDebugCheckBox" IsChecked="{Binding DebugEventEnable}"  Margin="113,225,791,449" ToolTip="Check to enable debug log output">
                         <Label Content="Enable Debug log" Width="104" Height="26" Foreground="White" Margin="0,-5,0,0"/>
                     </CheckBox>
-                    <CheckBox x:Name="EnableErrorCheckBox" IsChecked="{Binding ErrorEventEnable}"  Margin="113,252,791,421" Checked="CheckBox_Checked" ToolTip="Check to enable error log output">
+                    <CheckBox x:Name="EnableErrorsCheckBox" IsChecked="{Binding ErrorEventEnable}"  Margin="113,252,791,421" ToolTip="Check to enable error log output">
                         <Label Content="Enable Error log" Width="104" Height="30" Foreground="White" Margin="0,-4,0,0" ToolTip=""/>
                     </CheckBox>
                     <Label Content="Debugging :" Margin="19,196,803,470" Foreground="White"/>
