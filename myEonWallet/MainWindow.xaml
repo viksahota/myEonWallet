@@ -504,8 +504,7 @@
                 <MenuItem Header="_Save"/>
             </MenuItem>
         </Menu>
-        <Label Content="Label" HorizontalAlignment="Left" Margin="13,-95,0,0" VerticalAlignment="Top"/>
-        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="174" Margin="32,574,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}" Visibility="Hidden">
+        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="174" Margin="32,574,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}">
             <TextBlock x:Name="DebugViewerTB" HorizontalAlignment="Left" Height="141" Margin="10,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="992" Foreground="White" FontWeight="Bold"/>
         </GroupBox>
     </Grid>
