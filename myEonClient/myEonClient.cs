@@ -292,6 +292,8 @@ namespace myEonClient
                     }
 
                     await wal.RefreshAsync(eonSharpClient);
+                    
+
 
                     //check for a change in amount or deposit, inform the wallet to update the display if necessary.
                     if (oldAmount != wal.Information.Amount)
@@ -483,6 +485,78 @@ namespace myEonClient
             return RpcResult;
         }
 
+        public async Task<RpcResponseClass> Transaction_ColorCoinRegistration(int senderAccountIndex, string senderPassword, long EmissionAmount, int DecimalPoints)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+                EonSharp.Api.Transactions.ColoredCoinRegistration ccReg = new EonSharp.Api.Transactions.ColoredCoinRegistration(senderWallet.AccountDetails.AccountId, EmissionAmount, DecimalPoints);
+                ccReg.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccReg);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_ColorCoinRegistration() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
+        public async Task<RpcResponseClass> Transaction_ColorCoinPayment(int senderAccountIndex, string senderPassword, long Amount, string Recipient, string ColorCoinTypeID)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+                EonSharp.Api.Transactions.ColoredCoinPayment ccPay = new EonSharp.Api.Transactions.ColoredCoinPayment(senderWallet.AccountDetails.AccountId, Amount, Recipient, ColorCoinTypeID);
+                ccPay.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccPay);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_ColorCoinPayment() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
+        public async Task<RpcResponseClass> Transaction_ColorCoinDestroy(int senderAccountIndex, string senderPassword)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            RpcResult = await Transaction_ColorCoinSupply(senderAccountIndex, senderPassword,(long)0);
+
+            return RpcResult;
+        }
+
+            public async Task<RpcResponseClass> Transaction_ColorCoinSupply(int senderAccountIndex, string senderPassword, long MoneySupply)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+                EonSharp.Api.Transactions.ColoredCoinSupply ccSupply = new EonSharp.Api.Transactions.ColoredCoinSupply(senderWallet.AccountDetails.AccountId, MoneySupply);
+                ccSupply.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccSupply);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_ColorCoinSupply() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
         public async void GetTransactions(int index, int maxPages)
         {
             if (index >= 0)
@@ -565,6 +639,19 @@ namespace myEonClient
                         ntx.AttachedNewUserID = ((EonSharp.Api.Transactions.Attachments.RegistrationAttachment)tx.Attachment).AccountId;
                         ntx.AttachedNewUserPubKey = ((EonSharp.Api.Transactions.Attachments.RegistrationAttachment)tx.Attachment).PublicKey;
                     }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinRegistrationAttachment")
+                    {
+                        ntx.Type = "Color Coin Registration";
+                        ntx.AttachedColorCoinEmission = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).Emission;
+                        ntx.AttachedAmount = ntx.AttachedColorCoinEmission;
+                        ntx.AttachedColorCoinDecimals = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).DecimalPoint;
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinPaymentAttachment")
+                    {
+                        ntx.Type = "Color Coin Payment";
+                        ntx.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
+                       
+                    }
 
                     TransactionHistory.ConfirmedTransactionCollection.Add(ntx);
                 }
@@ -614,6 +701,19 @@ namespace myEonClient
                     {
                         nT.Type = "Account Registration";
                     }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinRegistrationAttachment")
+                    {
+                        nT.Type = "Color Coin registration";
+                        nT.AttachedAmount = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).Emission;
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinPaymentAttachment")
+                    {
+                        nT.Type = "Color Coin Payment";
+                        nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
+
+                    }
+
 
                     //update if entry is different
                     if (TransactionHistory.SummaryTransactionCollection.Count < (targetIndex + 1)) UIContext.Send(x => TransactionHistory.SummaryTransactionCollection.Add(nT), null);
@@ -652,6 +752,18 @@ namespace myEonClient
                     else if (tx.Attachment.GetType().Name == "RegistrationAttachment")
                     {
                         nT.Type = "Account Registration";
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinRegistrationAttachment")
+                    {
+                        nT.Type = "Color Coin registration";
+                        nT.AttachedAmount = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).Emission;
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinPaymentAttachment")
+                    {
+                        nT.Type = "Color Coin Payment";
+                        nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
+
                     }
 
                     //update if entry is different

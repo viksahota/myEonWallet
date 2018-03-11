@@ -61,7 +61,7 @@ namespace myEonWallet
             debugViewQueue = new Queue<DebugViewItem>();
 
             eonClient.BalanceUpdateEvent += (sender, msg) => { UpdatedBalance_Handler(msg); };
-            eonClient.BalanceUpdatePeriod = Properties.Settings.Default.BalanceSyncPeriod;            
+            eonClient.BalanceUpdatePeriod = Properties.Settings.Default.BalanceSyncPeriod;
 
             //set the datacontext of the config items
             EnableDebugCheckBox.DataContext = eonClient;
@@ -75,11 +75,14 @@ namespace myEonWallet
             Config_BalanceSyncPeriod_Adjustor.ConfigChangeEvent += (sender, msg) => { ConfigChangeHandler(msg); };
 
             Config_TransactionRecentConfirmedMax.DataContext = eonClient;
-            Config_TransactionRecentConfirmedMax.Setup(eonClient.RecentTransactions_ConfirmedMax, 3, 100, 1, "RecentConfirmedMax");   
+            Config_TransactionRecentConfirmedMax.Setup(eonClient.RecentTransactions_ConfirmedMax, 3, 100, 1, "RecentConfirmedMax");
             Config_TransactionRecentConfirmedMax.ConfigChangeEvent += (sender, msg) => { ConfigChangeHandler(msg); };
 
             Config_PeerAddressTB.DataContext = eonClient.coreConfig;
             eonClient.coreConfig.PeerValidatedAddressEvent += (sender, msg) => { PeerValidateHandler(msg); };
+
+
+            ColorCoinControlBoxes_HideAll();
 
             MessageBoxResult result = new MessageBoxResult();
 
@@ -103,25 +106,25 @@ namespace myEonWallet
             }
 
             eonClient.Start();
-            
+
             //select the first account in list
             AccountListView.SelectedIndex = 0;
             AccountListView.ItemsSource = eonClient.WalletManager.WalletCollection;
             TransactionsListView.ItemsSource = eonClient.TransactionHistory.ConfirmedTransactionCollection;
-            TransactionSummaryListView.ItemsSource = eonClient.TransactionHistory.SummaryTransactionCollection;                        
+            TransactionSummaryListView.ItemsSource = eonClient.TransactionHistory.SummaryTransactionCollection;
             AccountListView_SelectionChanged(null, null);
 
-            }
+        }
 
         private void PeerValidateHandler(string msg)
         {
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate
             {
-                if (msg=="VALID") Config_PeerAddressTB.Foreground = new SolidColorBrush(Colors.LightGreen);
-            else if (msg == "INVALID") Config_PeerAddressTB.Foreground = new SolidColorBrush(Colors.Red);
+                if (msg == "VALID") Config_PeerAddressTB.Foreground = new SolidColorBrush(Colors.LightGreen);
+                else if (msg == "INVALID") Config_PeerAddressTB.Foreground = new SolidColorBrush(Colors.Red);
             }));
         }
-                
+
         //debug message handler
         private void DebugMsg(string line)
         {
@@ -201,16 +204,61 @@ namespace myEonWallet
             }
         }
 
-        //updates the main balance and deposit labels
-        private void UpdateBalanceDeposit(int accountIndex)
+        //updates the main balance and deposit labels and the color coin status
+        private async void UpdateBalanceDeposit(int accountIndex)
         {
             if (accountIndex != -1)
             {
+
                 if (eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information != null)
                 {
                     BalanceLBL.Content = (decimal)eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Amount / 1000000 + " EON";
                     DepositLBL.Content = (decimal)eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Deposit / 1000000 + " EON";
                     TotalEON_LBL.Content = (decimal)(eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Amount + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Deposit) / 1000000 + " EON";
+
+
+
+                    if (eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin != null)
+                    {
+                        ColorCoinTypeID_LBL.Content = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin;
+                        var ccInfo = await eonClient.eonSharpClient.Bot.ColoredCoin.GetInfo(eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin);
+
+                        ColorCoinStatusStatus_LBL.Content = ccInfo.State.Name;
+                        if (ccInfo.State.Name == "OK")
+                        {
+                            ColorCoinStatusEmission_LBL.Content = ccInfo.MoneySupply;
+                            ColorCoinStatusDecimals_LBL.Content = ccInfo.DecimalPoint;
+
+
+                            ColorCoinControlBoxes_HideAll();
+
+                            ColorCoinControl_ShowCoinControls();
+
+
+                            //eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.
+                            //ColorCoinStatusBalance_LBL.Content = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex]
+                        }
+                        else
+                        {
+
+                        }
+
+                        //ccInfo.State
+
+                    }
+                    else
+                    {
+                        ColorCoinTypeID_LBL.Content = "--- color coin undefined for this account yet ---";
+
+                        ColorCoinStatusEmission_LBL.Content = "-";
+                        ColorCoinStatusDecimals_LBL.Content = "-";
+                        ColorCoinStatusBalance_LBL.Content = "-";
+                        ColorCoinStatusStatus_LBL.Content = "-";
+
+                        ColorCoinControlBoxes_HideAll();
+                        ColorCoinControl_ShowCreateCoinButton();
+
+                    }
                 }
             }
             else
@@ -221,10 +269,59 @@ namespace myEonWallet
             }
         }
 
+        private void ColorCoinControl_ShowCreateCoinDialog()
+        {
+            ColorCoinCreate_GroupBox.Margin = new Thickness(529, 17, 0, 0);
+            ColorCoinCreate_GroupBox.IsEnabled = true;
+            ColorCoinCreate_GroupBox.Visibility = Visibility.Visible;
+        }
+
+        private void ColorCoinControl_ShowCoinControls()
+        {
+            ColorCoinControls_GroupBox.IsEnabled = true;
+            ColorCoinControls_GroupBox.Visibility = Visibility.Visible;
+        }
+
+        private void ColorCoinControl_ShowCreateCoinButton()
+        {
+            ColorCoinControlsCreate_GroupBox.Margin = new Thickness(529, 17, 0, 0);
+            ColorCoinControlsCreate_GroupBox.IsEnabled = true;
+            ColorCoinControlsCreate_GroupBox.Visibility = Visibility.Visible;
+        }
+
+        private void ColorCoinControl_ShowSendCoinDialog()
+        {
+            ColorCoinSend_GroupBox.Margin = new Thickness(529, 17, 0, 0);
+            ColorCoinSend_GroupBox.IsEnabled = true;
+            ColorCoinSend_GroupBox.Visibility = Visibility.Visible;
+        }
+
+        private void ColorCoinControl_ShowModifyDialog()
+        {
+            ColorCoinSupply_GroupBox.Margin = new Thickness(529, 17, 0, 0);
+            ColorCoinSupply_GroupBox.IsEnabled = true;
+            ColorCoinSupply_GroupBox.Visibility = Visibility.Visible;
+        }
+
+
+        private void ColorCoinControlBoxes_HideAll()
+        {
+            ColorCoinCreate_GroupBox.IsEnabled = false;
+            ColorCoinCreate_GroupBox.Visibility = Visibility.Hidden;
+            ColorCoinSend_GroupBox.IsEnabled = false;
+            ColorCoinSend_GroupBox.Visibility = Visibility.Hidden;
+            ColorCoinSupply_GroupBox.IsEnabled = false;
+            ColorCoinSupply_GroupBox.Visibility = Visibility.Hidden;
+            ColorCoinControls_GroupBox.IsEnabled = false;
+            ColorCoinControls_GroupBox.Visibility = Visibility.Hidden;
+            ColorCoinControlsCreate_GroupBox.IsEnabled = false;
+            ColorCoinControlsCreate_GroupBox.Visibility = Visibility.Hidden;
+        }
+
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
             decimal amount = 0;
-            
+
             if (decimal.TryParse(SendAmountTB.Text, out amount))
             {
                 MsgBoxYesNo msgbox = new MsgBoxYesNo("Send " + amount + " EON from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to account " + RecipientTB.Text + " ?\r\n\r\n  - Enter your wallet encryption password then press YES to confirm and place this transaction on the EON blockchain.");
@@ -317,7 +414,7 @@ namespace myEonWallet
         {
             DebugViewBusy = true;
 
-            while(debugViewQueue.Count>0)
+            while (debugViewQueue.Count > 0)
             {
                 DebugViewItem newItem = debugViewQueue.Dequeue();
 
@@ -417,7 +514,7 @@ namespace myEonWallet
                     eonClient.Wallets_Restore(filePath);
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     DebugMsg("Exception during restore" + ex.Message);
                 }
@@ -440,7 +537,7 @@ namespace myEonWallet
                     break;
 
                 case MessageBoxResult.Cancel:
-                    
+
                     break;
             }
         }
@@ -473,7 +570,7 @@ namespace myEonWallet
             //add this new wallet to the wallet list and update the display
             try
             {
-                eonClient.Wallets_Add (wal);
+                eonClient.Wallets_Add(wal);
 
                 DebugMsg("New Account " + wal.AccountDetails.AccountId + " stored to walletlist");
                 nAC.Topmost = true;
@@ -517,13 +614,13 @@ namespace myEonWallet
                     }
                 }
             }
-            
-            }
+
+        }
 
         private void TransactionsListViewRefreshButton_Click(object sender, RoutedEventArgs e)
         {
             DebugMsg("Transactions view refreshed");
-            eonClient.GetTransactions(AccountListView.SelectedIndex, Properties.Settings.Default.TransactionHistoryMax/20);
+            eonClient.GetTransactions(AccountListView.SelectedIndex, Properties.Settings.Default.TransactionHistoryMax / 20);
         }
 
         //copy the rx address to clipboard
@@ -618,7 +715,7 @@ namespace myEonWallet
 
         private void LinkEonWikiMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("http://eondev-wiki.info/doku.php");            
+            Process.Start("http://eondev-wiki.info/doku.php");
         }
 
         private void LinkExscudoMenuItem_Click(object sender, RoutedEventArgs e)
@@ -631,25 +728,227 @@ namespace myEonWallet
             Process.Start("https://eontechnology.org/");
         }
 
+        //user changed the slider for colored coin decimal places
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            try
+            {
+                int decVal = (int)ColoredCoinDecimalsSlider.Value;
+                ColorCoinDecimalPlaces_LBL.Content = decVal;
+                ColorCoinAtomicValue_LBL.Content = (decimal)(1 / (Math.Pow(10, (double)decVal)));
+                if (decVal > 4) ColorCoinAtomicValue_LBL.Content += "  (" + (1 / (Math.Pow(10, (double)decVal))) + " )";
+            }
+            catch { }
+        }
+
+        private async void CreateColorCoin_BTN_Click(object sender, RoutedEventArgs e)
+        {
+            long amount = 0;
+            if ((long.TryParse(ColorCoinEmissionAmount_TB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)))
+            {
+                DepositConfirm dConfirm = new DepositConfirm("Create color coin from: " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+
+                if ((bool)dConfirm.ShowDialog())
+                {
+                    try
+                    {
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinRegistration(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, (int)ColoredCoinDecimalsSlider.Value);
+
+                        if (RpcResult.Result)
+                        {
+                            DebugMsg("Transaction SUCCESS -  Account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " created color coin with " + (int)ColoredCoinDecimalsSlider.Value + " decimals and emission of " + amount + ")");
+
+                            ColorCoinControlBoxes_HideAll();
+
+                            ColorCoinTypeID_LBL.Content = "--- WAIT FOR TRANSACTION TO CONFIRM!! ---";
+                        }
+                        else
+                        {
+                            ErrorMsg("Transaction FAILED - Color coin registration failure : " + RpcResult.Message);
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMsg("Transaction FAILED - Exception during color coin registration : " + ex.Message);
+
+                    }
+                }
+
+            }
+            else
+            {
+
+            }
+        }
+
+        //send a color coin payment
+        private async void ColorCoinPayment_BTN_Click(object sender, RoutedEventArgs e)
+        {
+
+            long amount = 0;
+
+            if ((long.TryParse(ColorCoinSendAmount_TB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)))
+            {
+                DepositConfirm dConfirm = new DepositConfirm("Send color coin [ " + amount + " of " + ColorCoinTypeID_TB.Text + " ] from: " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to " + ColorCoinSendRecipient_TB.Text + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
+                    try
+                    {
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinPayment(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, ColorCoinSendRecipient_TB.Text, ColorCoinTypeID_TB.Text);
+
+                        if (RpcResult.Result)
+                        {
+                            DebugMsg("Transaction SUCCESS -  Sent " + amount + " " + ColorCoinTypeID_TB.Text + " color coins from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to " + ColorCoinSendRecipient_TB.Text);
+                            ColorCoinControlBoxes_HideAll();
+                            ColorCoinControl_ShowCoinControls();
+                        }
+                        else
+                        {
+                            ErrorMsg("Transaction FAILED - Color coin send failure : " + RpcResult.Message);
+                            ColorCoinControlBoxes_HideAll();
+                            ColorCoinControl_ShowCoinControls();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMsg("Transaction FAILED - Exception during color coin send : " + ex.Message);
+                        ColorCoinControlBoxes_HideAll();
+                        ColorCoinControl_ShowCoinControls();
+
+                    }
+                }
+
+            }
+            else
+            {
+            }
+        }
+
+        //change the color coin supply
+        private async void ColorCoinSupply_BTN_Click(object sender, RoutedEventArgs e)
+        {
+            long amount = 0;
+
+            if ((long.TryParse(ColorCoinSupplyAmount_TB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)))
+            {
+                DepositConfirm dConfirm = new DepositConfirm("Change the total supply of color coin " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin + " to " + amount + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
+                    try
+                    {
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinSupply(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount);
+
+                        if (RpcResult.Result)
+                        {
+                            DebugMsg("Transaction SUCCESS -  Changed color coin " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin + " total supply to " + amount);
+                            ColorCoinControlBoxes_HideAll();
+                            ColorCoinControl_ShowCoinControls();
+                        }
+                        else
+                        {
+                            ErrorMsg("Transaction FAILED - Color coin supply change : " + RpcResult.Message);
+                            ColorCoinControlBoxes_HideAll();
+                            ColorCoinControl_ShowCoinControls();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMsg("Transaction FAILED - Exception during color coin supply change : " + ex.Message);
+                        ColorCoinControlBoxes_HideAll();
+                        ColorCoinControl_ShowCoinControls();
+
+                    }
+                }
+
+            }
+            else
+            {
+            }
+
+        }
+
+        private void CreateColorCoinMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            //show the create color coin dialog
+            ColorCoinControlBoxes_HideAll();
+            ColorCoinControl_ShowCreateCoinDialog();
+        }
+
+
+        //send creators color coin
+        private void SendColorCoinMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            ColorCoinControlBoxes_HideAll();
+            ColorCoinControl_ShowSendCoinDialog();
+        }
+
+        //modify color coin total supply
+        private void ModifyColorCoinMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            ColorCoinControlBoxes_HideAll();
+            ColorCoinControl_ShowModifyDialog();
+        }
+
+        //destroy color coin
+        private async void DestroyColorCoinMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            DepositConfirm dConfirm = new DepositConfirm("Destroy color coin " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.ColoredCoin + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+            dConfirm.ShowDepositFields(false);
+            if ((bool)dConfirm.ShowDialog())
+            {
+                try
+                {
+                    RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinDestroy(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password);
+
+                    if (RpcResult.Result)
+                    {
+                        DebugMsg("Transaction SUCCESS -  Destroyed Color Coin");
+                        ColorCoinControlBoxes_HideAll();
+                        ColorCoinControl_ShowCoinControls();
+                    }
+                    else
+                    {
+                        ErrorMsg("Transaction FAILED - Color Coin destroy failed : " + RpcResult.Message);
+                        ColorCoinControlBoxes_HideAll();
+                        ColorCoinControl_ShowCoinControls();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorMsg("Transaction FAILED - Exception during Color Coin destroy : " + ex.Message);
+                    ColorCoinControlBoxes_HideAll();
+                    ColorCoinControl_ShowCoinControls();
+
+                }
+
+                ColorCoinControlBoxes_HideAll();
+            }
+        }
     }
 
     //used to convert MEON to EON during xaml binding
     public class MEONToEONConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            decimal result = decimal.Parse(value.ToString()) / 1000000;
-            return result;
+            public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+            {
+                decimal result = decimal.Parse(value.ToString()) / 1000000;
+                return result;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+            {
+                long result = (long)((decimal)value * 1000000);
+                return result;
+            }
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            long result = (long)((decimal)value * 1000000);
-            return result;
-        }
     }
 
-}
+
 
 
 

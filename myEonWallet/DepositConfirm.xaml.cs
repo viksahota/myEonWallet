@@ -45,5 +45,22 @@ namespace myEonWallet
                 YesButton.Visibility = Visibility.Visible;
             }
         }
+
+        public void ShowDepositFields(bool visible)
+        {
+            if (visible)
+            {
+                DepositAmountTB.Visibility = Visibility.Visible;
+                DepositLabel1.Visibility = Visibility.Visible;
+                DepositLabel2.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                DepositAmountTB.Visibility = Visibility.Hidden;
+                DepositLabel1.Visibility = Visibility.Hidden;
+                DepositLabel2.Visibility = Visibility.Hidden;
+
+            }
+        }
     }
 }

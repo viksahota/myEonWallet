@@ -194,6 +194,34 @@ namespace myEonClient
             }
         }
 
+        private long attachedColorCoinEmission;
+        public long AttachedColorCoinEmission
+        {
+            get { return this.attachedColorCoinEmission; }
+            set
+            {
+                if (this.attachedColorCoinEmission != value)
+                {
+                    this.attachedColorCoinEmission = value;
+                    this.NotifyPropertyChanged("AttachedColorCoinEmission");
+                }
+            }
+        }
+
+        private int attachedColorCoinDecimals;
+        public int AttachedColorCoinDecimals
+        {
+            get { return this.attachedColorCoinDecimals; }
+            set
+            {
+                if (this.attachedColorCoinDecimals != value)
+                {
+                    this.attachedColorCoinDecimals = value;
+                    this.NotifyPropertyChanged("AttachedColorCoinDecimals");
+                }
+            }
+        }
+
         private string attachment;
         public string Attachment
         {
