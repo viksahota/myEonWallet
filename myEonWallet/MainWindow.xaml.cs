@@ -234,6 +234,9 @@ namespace myEonWallet
 
                             ColorCoinControl_ShowCoinControls();
 
+                            //EonSharp.Api.Balance balanceObject = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Balance;
+
+
 
                             //eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.
                             //ColorCoinStatusBalance_LBL.Content = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex]
