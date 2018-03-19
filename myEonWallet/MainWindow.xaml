@@ -239,8 +239,12 @@
                     <TextBox x:Name="RecipientTB" HorizontalAlignment="Left" Height="24" Margin="483.778,175,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="259" Grid.Column="1" ToolTip="Enter the recipient address to send EON to"/>
                     <Label Content="Amount :" HorizontalAlignment="Left" Margin="417.778,207,0,0" VerticalAlignment="Top" Foreground="White" Grid.Column="1"/>
                     <TextBox x:Name="SendAmountTB" HorizontalAlignment="Left" Height="24" Margin="483.778,209,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="259" Grid.Column="1" ToolTip="Enter the amount of EON to send to the recipient above"/>
-                    <Button x:Name="CreateAccountButton" HorizontalAlignment="Left" Margin="137,244,0,0" VerticalAlignment="Top" Width="25" Click="CreateAccountButton_Click" ToolTip="Click here to create a new EON account" Foreground="{x:Null}" Height="26" BorderBrush="{x:Null}" Background="{x:Null}" Grid.Column="1">
-                        <Image Height="23" Width="21" Source="images/plus.png" RenderTransformOrigin="0.5,0.514"/>
+                    <Button x:Name="CreateAccountButton" HorizontalAlignment="Left" Margin="45,244,0,0" VerticalAlignment="Top" Width="114" Click="CreateAccountButton_Click" ToolTip="Click here to create a new EON account" Foreground="{x:Null}" Height="26" BorderBrush="{x:Null}" Background="{x:Null}" HorizontalContentAlignment="Left" Grid.Column="1">
+                        <Grid Width="23">
+                            <Image Height="23" Width="21" Source="images/plus.png" RenderTransformOrigin="0.5,0.514" HorizontalAlignment="Left"/>
+                            <Label Content="Add Account" HorizontalAlignment="Left" Margin="26,-1,-88,0" VerticalAlignment="Top" Foreground="White" Width="85" Height="23" FontSize="11"/>
+                        </Grid>
+
                     </Button>
                     <Label Content="Recent Transactions" HorizontalAlignment="Left" Foreground="White" Margin="10,305,0,351.333" FontSize="20"/>
                     <ListView Margin="10,347,10.333,0" x:Name="TransactionSummaryListView" FontSize="10" IsSynchronizedWithCurrentItem="True" Height="336" VerticalAlignment="Top" Background="#FF052719" Foreground="White" SelectionMode="Single" Grid.ColumnSpan="2">
@@ -354,7 +358,7 @@
             </TabItem>
             <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="80" Header="ColorCoin">
                 <Grid Opacity="0.865" Background="#FF004533" Margin="4,-1,6.333,0" RenderTransformOrigin="0.5,0.5" Height="695" VerticalAlignment="Top">
-                    <GroupBox x:Name="ColorCoinCreate_GroupBox" Header="Create Colored Coin" Height="212" VerticalAlignment="Top" Foreground="#FFFEFEFE" Background="Black" Margin="10,255,0,0" HorizontalAlignment="Left" Width="400">
+                    <GroupBox x:Name="ColorCoinCreate_GroupBox" Header="Create Colored Coin" Height="212" VerticalAlignment="Top" Foreground="#FFFEFEFE" Background="Black" Margin="10,255,0,0" HorizontalAlignment="Left" Width="400" Visibility="Hidden">
                         <Grid>
                             <TextBox x:Name="ColorCoinEmissionAmount_TB" HorizontalAlignment="Left" Height="23" Margin="256,25,0,0" TextWrapping="Wrap" Text="1000" VerticalAlignment="Top" Width="122" HorizontalContentAlignment="Center"/>
                             <Label Content="Total Number of Colored Coins to create :" HorizontalAlignment="Left" Margin="10,22,0,0" VerticalAlignment="Top" Foreground="White" Width="230" Height="25"/>
@@ -363,25 +367,33 @@
                             <Label Content="Smallest amount : " HorizontalAlignment="Left" Margin="79,100,0,0" VerticalAlignment="Top" Foreground="White" Width="161" Height="25" HorizontalContentAlignment="Right"/>
                             <Label x:Name="ColorCoinAtomicValue_LBL" Content="0.001" HorizontalAlignment="Left" Margin="235,100,0,0" VerticalAlignment="Top" Foreground="White" Width="138" Height="25"/>
                             <Label x:Name="ColorCoinDecimalPlaces_LBL" Content="3" HorizontalAlignment="Left" Margin="235,65,0,0" VerticalAlignment="Top" Foreground="White" Width="26" Height="25"/>
-                            <Button x:Name="CreateColorCoin_BTN" Margin="247,144,10,17.667" Content="Create " Foreground="White" Opacity="0.995" Width="131" Click="CreateColorCoin_BTN_Click">
+                            <Button x:Name="CreateColorCoin_BTN" Margin="220,144,95,17.667" Content="Create " Foreground="White" Opacity="0.995" Click="CreateColorCoin_BTN_Click">
                                 <Button.Background>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="Black" Offset="0"/>
-                                        <GradientStop Color="#FF5A2D2D" Offset="1"/>
+                                        <GradientStop Color="#FF079318" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
+                            <Button x:Name="CreateColorCoinCancel_BTN" Margin="304,144,11,17.667" Content="Cancel" Foreground="White" Opacity="0.995" Click="CreateColorCoinCancel_BTN_Click">
+                                <Button.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="Black" Offset="0"/>
+                                        <GradientStop Color="#FFD11515" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Button.Background>
                             </Button>
                         </Grid>
                     </GroupBox>
-                    <GroupBox x:Name="ColorCoinSend_GroupBox" Header="Send Color Coins" HorizontalAlignment="Left" Height="212" Margin="425,467,0,0" VerticalAlignment="Top" Width="400" Foreground="#FFFEFEFE" Background="Black">
+                    <GroupBox x:Name="ColorCoinSend_GroupBox" Header="Send Color Coins" HorizontalAlignment="Left" Height="212" Margin="425,467,0,0" VerticalAlignment="Top" Width="400" Foreground="#FFFEFEFE" Background="Black" Visibility="Hidden">
                         <Grid>
                             <TextBox x:Name="ColorCoinSendAmount_TB" HorizontalAlignment="Right" Height="23" Margin="0,20,11,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="228" HorizontalContentAlignment="Center"/>
                             <Label Content="Amount to send :" HorizontalAlignment="Right" Margin="0,16,244,0" VerticalAlignment="Top" Foreground="White" Width="129" Height="25" HorizontalContentAlignment="Right"/>
-                            <Button x:Name="ColorCoinPayment_BTN" Margin="0,145,11,0" Content="Send" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="131" Height="26" VerticalAlignment="Top" Click="ColorCoinPayment_BTN_Click">
+                            <Button x:Name="ColorCoinPayment_BTN" Margin="0,143,91,0" Content="Send" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="71" Height="26" VerticalAlignment="Top" Click="ColorCoinPayment_BTN_Click">
                                 <Button.Background>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="Black" Offset="0"/>
-                                        <GradientStop Color="#FF5A2D2D" Offset="1"/>
+                                        <GradientStop Color="#FF079318" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Button.Background>
                             </Button>
@@ -389,17 +401,33 @@
                             <Label Content="Recipient :" HorizontalAlignment="Right" Margin="0,50,244,0" VerticalAlignment="Top" Foreground="White" Width="129" Height="25" HorizontalContentAlignment="Right"/>
                             <TextBox x:Name="ColorCoinTypeID_TB" HorizontalAlignment="Right" Height="23" Margin="0,89,11,0" TextWrapping="Wrap" Text="EON-C-" VerticalAlignment="Top" Width="228" HorizontalContentAlignment="Center"/>
                             <Label Content="Color coin type ID :" HorizontalAlignment="Right" Margin="0,85,244,0" VerticalAlignment="Top" Foreground="White" Width="129" Height="25" HorizontalContentAlignment="Right"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox x:Name="ColorCoinSupply_GroupBox" Header="Create / Destroy color coins" HorizontalAlignment="Left" Height="212" Margin="10,467,0,0" VerticalAlignment="Top" Width="400" Foreground="#FFFEFEFE" Background="Black">
-                        <Grid>
-                            <TextBox x:Name="ColorCoinSupplyAmount_TB" HorizontalAlignment="Right" Height="23" Margin="0,20,13,0" TextWrapping="Wrap" Text="1000" VerticalAlignment="Top" Width="154" HorizontalContentAlignment="Center"/>
-                            <Label Content="Total Supply :" HorizontalAlignment="Right" Margin="0,16,172,0" VerticalAlignment="Top" Foreground="White" Width="129" Height="25" HorizontalContentAlignment="Right"/>
-                            <Button x:Name="ColorCoinSupply_BTN" Margin="0,140,11,0" Content="Send" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="131" Height="26" VerticalAlignment="Top" Click="ColorCoinSupply_BTN_Click">
+                            <Button x:Name="ColorCoinPaymentCancel_BTN" Margin="0,143,10,0" Content="Cancel" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="71" Height="26" VerticalAlignment="Top" Click="ColorCoinPaymentCancel_BTN_Click">
                                 <Button.Background>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="Black" Offset="0"/>
-                                        <GradientStop Color="#FF5A2D2D" Offset="1"/>
+                                        <GradientStop Color="#FFD11515" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox x:Name="ColorCoinSupply_GroupBox" Header="Modify Color Coin Supply" HorizontalAlignment="Left" Height="212" Margin="10,467,0,0" VerticalAlignment="Top" Width="400" Foreground="#FFFEFEFE" Background="Black" Visibility="Hidden">
+                        <Grid>
+                            <TextBox x:Name="ColorCoinSupplyAmount_TB" HorizontalAlignment="Right" Height="23" Margin="0,20,13,0" TextWrapping="Wrap" Text="1000" VerticalAlignment="Top" Width="154" HorizontalContentAlignment="Center"/>
+                            <Label Content="Total Supply :" HorizontalAlignment="Right" Margin="0,16,172,0" VerticalAlignment="Top" Foreground="White" Width="129" Height="25" HorizontalContentAlignment="Right"/>
+                            <Button x:Name="ColorCoinSupplyModify_BTN" Margin="0,140,97,0" Content="Modify" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="70" Height="26" VerticalAlignment="Top" Click="ColorCoinSupplyModify_BTN_Click">
+                                <Button.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="Black" Offset="0"/>
+                                        <GradientStop Color="#FF079318" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                            </Button>
+                            <Button x:Name="ColorCoinSupplyModifyCancel_BTN" Margin="0,140,16,0" Content="Cancel" Foreground="White" Opacity="0.995" HorizontalAlignment="Right" Width="70" Height="26" VerticalAlignment="Top" Click="ColorCoinSupplyModifyCancel_BTN_Click">
+                                <Button.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="Black" Offset="0"/>
+                                        <GradientStop Color="#FFD11515" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Button.Background>
                             </Button>
@@ -429,15 +457,39 @@
                         <Label Content="Send Color Coin" HorizontalAlignment="Left" Margin="90,30,0,0" VerticalAlignment="Top" Foreground="White" Width="280" Height="32" FontSize="14" FontWeight="Bold"/>
                         <Label Content="Modify Total Supply ( Add/Destroy Coins)" HorizontalAlignment="Left" Margin="90,84,0,0" VerticalAlignment="Top" Foreground="White" Width="310" Height="32" FontSize="14" FontWeight="Bold"/>
                         <Label Content="Destroy this Color Coin" HorizontalAlignment="Left" Margin="90,140,0,0" VerticalAlignment="Top" Foreground="White" Width="310" Height="32" FontSize="14" FontWeight="Bold"/>
-
                     </Grid>
-                    <Grid x:Name="ColorCoinControlsCreate_GroupBox" HorizontalAlignment="Left" Height="212" Margin="529,257,0,0" VerticalAlignment="Top" Width="400">
+                    <Grid x:Name="ColorCoinControlsCreate_GroupBox" HorizontalAlignment="Left" Height="212" Margin="529,257,0,0" VerticalAlignment="Top" Width="400" Visibility="Hidden">
                         <Button x:Name="CreateColorCoinMenuButton" HorizontalAlignment="Left" Height="46" Margin="36,77,0,0" VerticalAlignment="Top" Width="44" Background="{x:Null}" BorderBrush="{x:Null}" Click="CreateColorCoinMenuButton_Click">
                             <Image HorizontalAlignment="Left" Height="36" VerticalAlignment="Top" Width="34" Source="images/plus.png"/>
                         </Button>
                         <Label Content="Create Color Coin" HorizontalAlignment="Left" Margin="90,84,0,0" VerticalAlignment="Top" Foreground="White" Width="310" Height="32" FontSize="14" FontWeight="Bold"/>
 
                     </Grid>
+                    <GroupBox HorizontalAlignment="Left" Height="378" Margin="0,312,0,0" VerticalAlignment="Top" Width="1041" BorderBrush="{x:Null}" Background="#FF052719" Foreground="White" Header="All Color Coin Balances for the selected account">
+                        <Grid>
+                            <ListView Margin="80,50,0,39" x:Name="ColorCoinListView" FontSize="10" SelectionChanged="ColorCoinListView_SelectionChanged" IsSynchronizedWithCurrentItem="True" ToolTip="Select a color coin" HorizontalAlignment="Left" HorizontalContentAlignment="Center">
+                                <ListView.View>
+                                    <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
+                                        <GridViewColumn Header="Color Coin ID" Width="180" DisplayMemberBinding="{Binding Key}" />
+                                        <GridViewColumn Header="Balance" Width="200" DisplayMemberBinding="{Binding Value}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <Button x:Name="SendColorCoinsButton" HorizontalAlignment="Left" Height="38" Margin="738,171,0,0" VerticalAlignment="Top" Width="180" Background="{x:Null}" BorderBrush="{x:Null}" Click="SendColorCoinsButton_Click">
+                                <Grid Width="180">
+                                    <Image HorizontalAlignment="Left" Height="38" VerticalAlignment="Top" Width="38" Source="images/send.png"/>
+                                    <Label Content="Send Color Coins" HorizontalAlignment="Left" Margin="52,0,0,0" VerticalAlignment="Top" Foreground="White" Width="124" Height="32" FontSize="14" FontWeight="Bold"/>
+                                </Grid>
+                            </Button>
+                            <Label Content="Recipient :" HorizontalAlignment="Left" Margin="576,99,0,0" VerticalAlignment="Top" Foreground="White"/>
+                            <TextBox x:Name="CCRecipientTB" HorizontalAlignment="Left" Height="24" Margin="664,99,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="259" ToolTip="Enter the recipient address to send EON to"/>
+                            <Label Content="Amount :" HorizontalAlignment="Left" Margin="581,133,0,0" VerticalAlignment="Top" Foreground="White"/>
+                            <TextBox x:Name="CCSendAmountTB" HorizontalAlignment="Left" Height="24" Margin="663,133,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="259" ToolTip="Enter the amount of EON to send to the recipient above"/>
+                            <Label Content="(first select a color coin from the listview on the left )" HorizontalAlignment="Left" Margin="526,50,0,0" VerticalAlignment="Top" Foreground="Red" Width="399" Background="{x:Null}" FontSize="16" HorizontalContentAlignment="Right"/>
+                            <Label Content="1 . Select a Color Coin" HorizontalAlignment="Left" Margin="80,10,0,0" VerticalAlignment="Top" Foreground="White" Width="388" Background="{x:Null}" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                            <Label Content="2. Send Color Coins" HorizontalAlignment="Left" Margin="560,10,0,0" VerticalAlignment="Top" Foreground="White" Width="388" Background="{x:Null}" FontSize="20" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="55" Header="Config">
@@ -504,7 +556,7 @@
                 <MenuItem Header="_Save"/>
             </MenuItem>
         </Menu>
-        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="174" Margin="32,574,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}">
+        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="151" Margin="32,597,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}">
             <TextBlock x:Name="DebugViewerTB" HorizontalAlignment="Left" Height="141" Margin="10,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="992" Foreground="White" FontWeight="Bold"/>
         </GroupBox>
     </Grid>
