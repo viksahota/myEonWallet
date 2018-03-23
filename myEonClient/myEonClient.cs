@@ -148,6 +148,27 @@ namespace myEonClient
 
         #endregion
 
+        #region useful conversion methods
+
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        public static byte[] StringToByteArray(String hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+        
+        #endregion
+
         //class constructor
         public MyEonClient()
         {
@@ -171,7 +192,8 @@ namespace myEonClient
             UIContext = SynchronizationContext.Current;
         }
 
-      
+        #region initialisation methods
+
         public void Start()
         {            
             //pass down the debug settings to walletlist, the load the wallet data from user settings
@@ -209,24 +231,8 @@ namespace myEonClient
             }
         }
 
-        public static string ByteArrayToString(byte[] ba)
-        {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-        }
-
-        public static byte[] StringToByteArray(String hex)
-        {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2)
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return bytes;
-        }
-
-
+        #endregion
+        
         private void EonThreadStart()
         {
             //allow the form to open
@@ -271,7 +277,9 @@ namespace myEonClient
             ErrorMsg("<eonThread ended>");
         }
 
-        //update the balances of all accounts and despatch update to consumer
+        #region Balance update handling
+
+        //update the balances of all accounts and despatch update event to consumer
         public async void UpdateBalances(bool UpdateNow)
         {
             bool change = false;
@@ -292,7 +300,7 @@ namespace myEonClient
                     }
 
                     await wal.RefreshAsync(eonSharpClient);
-                    
+
 
 
                     //check for a change in amount or deposit, inform the wallet to update the display if necessary.
@@ -312,8 +320,32 @@ namespace myEonClient
             }
 
             //callback to the consumer to update the main balance/deposit display since an update occured
-            if ((UpdateNow | change)&&(WalletManager.WalletCollection.Count>0)) BalanceUpdateMsg("");
+            if ((UpdateNow | change) && (WalletManager.WalletCollection.Count > 0)) BalanceUpdateMsg("");
 
+        }
+
+        #endregion
+        
+        #region account creation and wallet management
+
+        public Wallet CreateAccount(string name, string password)
+        {
+            Wallet newWal = new Wallet(name, password);
+            string seed = EonSharp.Helpers.HexHelper.ArrayToHexString(newWal.GetPrivateKey(password));
+
+            try
+            {
+                newWal.UnlockAccountDetails(password);
+                newWal.RefreshAsync(eonSharpClient);
+                DebugMsg("CreateAccount() - New AccountID : " + newWal.AccountDetails.AccountId);
+                DebugMsg("CreateAccount() -     Seed : " + seed);
+                DebugMsg("CreateAccount() -     Public Key : " + newWal.AccountDetails.PublicKey);
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("CreateAccount() - Exception : " + ex.Message);
+            }
+            return newWal;
         }
 
         public bool Wallets_Add(Wallet wal)
@@ -336,8 +368,7 @@ namespace myEonClient
             DebugMsg("Wallets_Add() - New Account " + wal.AccountDetails.AccountId + " stored to walletlist");
             return res;
         }
-
-
+        
         //restore the wallet list from a file
         public bool Wallets_Restore(string filePath)
         {
@@ -412,6 +443,10 @@ namespace myEonClient
             return WalletManager.WalletCollection[index];
         }
 
+        #endregion
+
+        #region regular transactions
+
         //register a new account
         public async Task<RpcResponseClass> Transaction_Register(Wallet newWallet, string senderPassword)
         {
@@ -485,6 +520,10 @@ namespace myEonClient
             return RpcResult;
         }
 
+        #endregion
+        
+        #region Color Coin transactions
+
         public async Task<RpcResponseClass> Transaction_ColorCoinRegistration(int senderAccountIndex, string senderPassword, long EmissionAmount, int DecimalPoints)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
@@ -536,7 +575,7 @@ namespace myEonClient
             return RpcResult;
         }
 
-            public async Task<RpcResponseClass> Transaction_ColorCoinSupply(int senderAccountIndex, string senderPassword, long MoneySupply)
+        public async Task<RpcResponseClass> Transaction_ColorCoinSupply(int senderAccountIndex, string senderPassword, long MoneySupply)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -557,6 +596,9 @@ namespace myEonClient
             return RpcResult;
         }
 
+        #endregion
+        
+        #region transactions history and transaction summary 
         public async void GetTransactions(int index, int maxPages)
         {
             if (index >= 0)
@@ -661,7 +703,6 @@ namespace myEonClient
                 ErrorMsg("GetPage() - Exception : " + ex.Message);
             }
         }
-
 
         public async void UpdateTransactionSummary(int index)
         {
@@ -786,29 +827,109 @@ namespace myEonClient
                 DebugMsg("UpdateTransactionSummary() raised exception : " + ex.Message);
             }
         }
+        #endregion
 
+        #region multisig transactions
 
-        public Wallet CreateAccount(string name, string password)
+        public async Task<RpcResponseClass> Transaction_MultiSigDelegate(int senderAccountIndex, string senderPassword, string DelegateID, int DelegatedWeight)
         {
-            Wallet newWal = new Wallet(name, password);
-            string seed = EonSharp.Helpers.HexHelper.ArrayToHexString(newWal.GetPrivateKey(password));
+            RpcResponseClass RpcResult = new RpcResponseClass();
 
             try
-            {                
-                newWal.UnlockAccountDetails(password);
-                newWal.RefreshAsync(eonSharpClient);
-                DebugMsg("CreateAccount() - New AccountID : " + newWal.AccountDetails.AccountId);
-                DebugMsg("CreateAccount() -     Seed : " + seed);
-                DebugMsg("CreateAccount() -     Public Key : " + newWal.AccountDetails.PublicKey);
-            }
-            catch(Exception ex)
             {
-                ErrorMsg("CreateAccount() - Exception : " + ex.Message);
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+
+                EonSharp.Api.Transactions.Delegate msDelegate = new EonSharp.Api.Transactions.Delegate(senderWallet.AccountDetails.AccountId, DelegateID, DelegatedWeight);
+
+                msDelegate.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(msDelegate);
+                RpcResult.Result = true;
             }
-            return newWal;
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_MultiSigDelegate() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
         }
 
-      
+        public async Task<RpcResponseClass> Transaction_MultiSigQuorum(int senderAccountIndex, string senderPassword, int QuorumAll, IDictionary<int, int> QuorumTypes = null)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+
+                EonSharp.Api.Transactions.Quorum msQuorum = new EonSharp.Api.Transactions.Quorum(senderWallet.AccountDetails.AccountId, QuorumAll, QuorumTypes);
+
+                msQuorum.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(msQuorum);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_MultiSigQuorum() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
+
+        public async Task<RpcResponseClass> Transaction_MultiSigRejection(int senderAccountIndex, string senderPassword, string RejectedAccountID)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+
+                EonSharp.Api.Transactions.Rejection msReject = new EonSharp.Api.Transactions.Rejection(senderWallet.AccountDetails.AccountId, RejectedAccountID);
+
+                msReject.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(msReject);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_MultiSigReject() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
+
+        public async Task<RpcResponseClass> Transaction_MultiSigPublication(int senderAccountIndex, string senderPassword, string PublicationSeed)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+
+                EonSharp.Api.Transactions.Publication msPublication = new EonSharp.Api.Transactions.Publication(senderWallet.AccountDetails.AccountId, PublicationSeed);
+
+                msPublication.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(msPublication);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_MultiSigPublication() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            return RpcResult;
+        }
+
+        #endregion
+
+
+
+
 
     }
 }
