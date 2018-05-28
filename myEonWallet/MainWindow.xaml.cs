@@ -22,6 +22,10 @@ using System.Diagnostics;
 using System.Windows.Media.Animation;
 using EonSharp;
 using System.Globalization;
+using EonSharp.Api;
+using System.Text.RegularExpressions;
+using System.IO;
+using System.Collections;
 
 namespace myEonWallet
 {
@@ -37,6 +41,8 @@ namespace myEonWallet
         private NewAttachedAccountDialog nAC;
 
         private volatile bool ShutDownFlag = false;
+
+        private Transaction ImportedMSMTX;
 
         private Queue<DebugViewItem> debugViewQueue;
 
@@ -116,6 +122,7 @@ namespace myEonWallet
 
             ColorCoinListView.SelectedIndex = 0;
             //ColorCoinListView.ItemsSource = eonClient.WalletManager.WalletCollection
+
 
         }
 
@@ -231,8 +238,8 @@ namespace myEonWallet
                         ColorCoinStatusStatus_LBL.Content = ccInfo.State.Name;
                         if (ccInfo.State.Name == "OK")
                         {
-                            ColorCoinStatusEmission_LBL.Content = ccInfo.MoneySupply;
-                            ColorCoinStatusDecimals_LBL.Content = ccInfo.DecimalPoint;
+                            ColorCoinStatusEmission_LBL.Content = ccInfo.Supply;
+                            ColorCoinStatusDecimals_LBL.Content = ccInfo.Decimal;
                             
                             ColorCoinControlBoxes_HideAll();
                             ColorCoinControl_ShowCoinControls();
@@ -274,6 +281,70 @@ namespace myEonWallet
                         ColorCoinControl_ShowCreateCoinButton();
 
                     }
+
+
+                    //display multisig votingrights info
+                    VotingRights vr = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.VotingRights;
+                    if (vr != null)
+                    {
+                        VotingListView.ItemsSource = vr.Delegates;
+                    }
+                    else VotingListView.ItemsSource = null;
+
+                    /*
+                    //display quorum
+                    Quorum qr = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Quorum;
+                    if( qr!=null )
+                    {
+                        int quorumAll = qr.quorum;
+
+                        //set all quorum types to ALL value
+                        QuorumAll_Slider.Value = qr.quorum;
+                        QuorumAccountReg_Slider.Value = qr.quorum;
+                        QuorumPayment_Slider.Value = qr.quorum;
+                        QuorumDepositChange_Slider.Value = qr.quorum;
+                        QuorumDelegate_Slider.Value = qr.quorum;
+                        QuorumQuorum_Slider.Value = qr.quorum;
+                        QuorumRejection_Slider.Value = qr.quorum;
+                        QuorumAccountPublication_Slider.Value = qr.quorum;
+
+                        //set individual quorums
+                        if (qr.QuorumByTypes != null)
+                        {
+                            foreach (var qt in qr.QuorumByTypes)
+                            {
+                                switch (qt.Key)
+                                {
+                                    case (100)://account registration
+                                        QuorumAccountReg_Slider.Value = qt.Value;
+                                        break;
+                                    case (200)://ordinary payment
+                                        QuorumPayment_Slider.Value = qt.Value;
+                                        break;
+                                    case (300)://Deposit change
+                                        QuorumDepositChange_Slider.Value = qt.Value;
+                                        break;
+                                    case (400)://Quorum
+                                        QuorumQuorum_Slider.Value = qt.Value;
+                                        break;
+                                    case (425)://Delegate
+                                        QuorumDelegate_Slider.Value = qt.Value;
+                                        break;
+                                    case (450)://Rejection
+                                        QuorumRejection_Slider.Value = qt.Value;
+                                        break;
+                                    case (475)://Account Publication
+                                        QuorumAccountPublication_Slider.Value = qt.Value;
+                                        break;
+                                }
+                            }
+                        }
+                    }*/
+
+
+                    VoterListView.ItemsSource = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Voter;
+
+
                 }
             }
             else
@@ -337,15 +408,22 @@ namespace myEonWallet
         {
             decimal amount = 0;
 
-            if (decimal.TryParse(SendAmountTB.Text, out amount))
-            {
-                MsgBoxYesNo msgbox = new MsgBoxYesNo("Send " + amount + " EON from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to account " + RecipientTB.Text + " ?\r\n\r\n  - Enter your wallet encryption password then press YES to confirm and place this transaction on the EON blockchain.");
-                if ((bool)msgbox.ShowDialog())
-                {
+            //regex check the destination address
+            string pattern = @"(EON)-([^-]{5})-([^-]{5})-([^-]{5})";
+            Match accountMatch = Regex.Match(RecipientTB.Text, pattern);
 
+            if (decimal.TryParse(SendAmountTB.Text, out amount) && (accountMatch.Groups.Count==5))
+            {
+
+
+                DepositConfirm dConfirm = new DepositConfirm("Send " + amount + " EON from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to account " + RecipientTB.Text +" ?\r\n\r\n1. (optional) Add a private note to this transaction\r\n2. Supply the password for your encrypted wallet\r\n3. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_SendPayment(AccountListView.SelectedIndex, RecipientTB.Text, 1000000 * amount, msgbox.walletPasswordBox.Password);
+
+                        RpcResponseClass RpcResult = await eonClient.Transaction_SendPayment(AccountListView.SelectedIndex, RecipientTB.Text, 1000000 * amount, dConfirm.walletPasswordBox.Password, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
                         if (RpcResult.Result)
                         {
                             DebugMsg("Transaction SUCCESS : Sent " + amount + " EON  from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to " + RecipientTB.Text);
@@ -361,16 +439,51 @@ namespace myEonWallet
 
                         ErrorMsg("Transaction FAILED - Sending of " + amount + " EON from " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to account " + RecipientTB.Text + " [Exception] - " + ex.Message);
 
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
+
                     }
+
                 }
                 else
                 {
                     //cancelled
                 }
+
             }
             else
             {
-                ErrorMsg("Error parsing the AMOUNT. Correct before retrying.");
+                ErrorMsg("Error parsing the Amount or Recipient AccountID. Correct before retrying.");
+            }
+        }
+
+        private void MSMTransactionCheckAndExport(Exception ex)
+        {
+            //detect multisig send the doesnt reach quorum - we need to export the transaction
+            string response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
+
+            if (response.Contains("-32602"))
+            {
+                string request = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcRequest;
+                string txRequestPattern = @"params"":\[([^]]*)";
+                Match requestMatch = Regex.Match(request, txRequestPattern);
+
+                string transaction = "";
+
+                if (requestMatch.Groups.Count == 2) transaction = requestMatch.Groups[1].Value;
+
+
+                DebugMsg("MSM transaction did not reach quorum - exporting...");
+
+                MSMTXDialog msmDialog = new MSMTXDialog("MSM Transaction detected\r\n\r\nThis transaction needs to be signed by more delegates to acheive quorem. Export this transaction to a file now ?", "");
+                if ((bool)msmDialog.ShowDialog())
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Title = "Export your signed multisig transaction to file to share with delegates....";
+                    if (saveFileDialog.ShowDialog() == true) File.WriteAllText(saveFileDialog.FileName, transaction);
+                }
+
             }
         }
 
@@ -382,7 +495,7 @@ namespace myEonWallet
                 SelectedAccountAddress_LBL.Content = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId;
                 UpdateBalanceDeposit(AccountListView.SelectedIndex);
                 eonClient.selectedIndex = AccountListView.SelectedIndex;
-                eonClient.UpdateTransactionSummary(AccountListView.SelectedIndex);
+                if (AccountListView.SelectedIndex < eonClient.WalletManager.WalletCollection.Count) eonClient.UpdateTransactionSummary(AccountListView.SelectedIndex);
             }
         }
 
@@ -439,6 +552,7 @@ namespace myEonWallet
                 else { DebugViewGroupBox.Foreground = Brushes.Green; DebugViewerTB.Foreground = Brushes.LightGreen; }
 
                 //fade in
+                DebugViewGroupBox.Visibility = Visibility.Visible;
                 DoubleAnimation da = new DoubleAnimation();
                 da.From = 0;
                 da.To = 1;
@@ -456,7 +570,7 @@ namespace myEonWallet
                 dc.Duration = new Duration(TimeSpan.FromSeconds(1));
                 dc.AutoReverse = false;
                 DebugViewGroupBox.BeginAnimation(OpacityProperty, dc);
-
+                DebugViewGroupBox.Visibility = Visibility.Hidden;
             }
             DebugViewBusy = false;
 
@@ -527,6 +641,8 @@ namespace myEonWallet
 
                     //restore the walletlist
                     eonClient.Wallets_Restore(filePath);
+
+                    AccountListView.SelectedIndex = 0;
 
                 }
                 catch (Exception ex)
@@ -611,7 +727,7 @@ namespace myEonWallet
                     try
                     {
                         amount = decimal.Parse(dConfirm.DepositAmountTB.Text);
-                        RpcResponseClass RpcResult = await eonClient.Transaction_SetDeposit(AccountListView.SelectedIndex, amount, dConfirm.walletPasswordBox.Password);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_SetDeposit(AccountListView.SelectedIndex, amount, dConfirm.walletPasswordBox.Password, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                         if (RpcResult.Result)
                         {
@@ -626,6 +742,9 @@ namespace myEonWallet
                     {
                         ErrorMsg("Transaction FAILED - Change Deposit to " + amount + " EON failed for account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " [Exception] - " + ex.Message);
 
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
                     }
                 }
             }
@@ -634,7 +753,7 @@ namespace myEonWallet
 
         private void TransactionsListViewRefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            DebugMsg("Transactions view refreshed");
+            //DebugMsg("Transactions view refreshed");
             eonClient.GetTransactions(AccountListView.SelectedIndex, Properties.Settings.Default.TransactionHistoryMax / 20);
         }
 
@@ -645,9 +764,14 @@ namespace myEonWallet
             Clipboard.SetText(iText);
         }
 
-        private void DefaultPeerButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void TestnetPeerButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             eonClient.coreConfig.Peer = "https://peer.testnet.eontechnology.org:9443";
+        }
+
+        private void MainnetPeerButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            eonClient.coreConfig.Peer = "https://peer.eontechnology.org:9443";
         }
 
         //link click
@@ -768,7 +892,7 @@ namespace myEonWallet
                 {
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinRegistration(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, (int)ColoredCoinDecimalsSlider.Value);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinRegistration(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, (int)ColoredCoinDecimalsSlider.Value, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                         if (RpcResult.Result)
                         {
@@ -788,6 +912,9 @@ namespace myEonWallet
                     {
                         ErrorMsg("Transaction FAILED - Exception during color coin registration : " + ex.Message);
 
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
                     }
                 }
 
@@ -801,10 +928,18 @@ namespace myEonWallet
         //send a color coin payment
         private async void ColorCoinPayment_BTN_Click(object sender, RoutedEventArgs e)
         {
-
             long amount = 0;
 
-            if ((long.TryParse(ColorCoinSendAmount_TB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)))
+            //regex check the destination address input
+            string pattern = @"(EON)-([^-]{5})-([^-]{5})-([^-]{5})";
+            Match accountMatch = Regex.Match(ColorCoinSendRecipient_TB.Text, pattern);
+
+            //regex check the color coin type input
+            string pattern2 = @"(EON-C)-([^-]{5})-([^-]{5})-([^-]{5})";
+            Match coinIdentMatch = Regex.Match(ColorCoinTypeID_TB.Text, pattern2);
+
+
+            if ((long.TryParse(ColorCoinSendAmount_TB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)) && (accountMatch.Groups.Count==5)  && (coinIdentMatch.Groups.Count==5))
             {
                 DepositConfirm dConfirm = new DepositConfirm("Send color coin [ " + amount + " of " + ColorCoinTypeID_TB.Text + " ] from: " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to " + ColorCoinSendRecipient_TB.Text + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
                 dConfirm.ShowDepositFields(false);
@@ -812,7 +947,7 @@ namespace myEonWallet
                 {
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinPayment(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, ColorCoinSendRecipient_TB.Text, ColorCoinTypeID_TB.Text);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinPayment(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, ColorCoinSendRecipient_TB.Text, ColorCoinTypeID_TB.Text, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                         if (RpcResult.Result)
                         {
@@ -833,12 +968,16 @@ namespace myEonWallet
                         ColorCoinControlBoxes_HideAll();
                         ColorCoinControl_ShowCoinControls();
 
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
                     }
                 }
 
             }
             else
             {
+                ErrorMsg("Color Coin Send error : invalid format detected in amount, recipient or coin ident. Correct before retrying");
             }
         }
 
@@ -855,7 +994,7 @@ namespace myEonWallet
                 {
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinSupply(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinSupply(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                         if (RpcResult.Result)
                         {
@@ -875,6 +1014,9 @@ namespace myEonWallet
                         ErrorMsg("Transaction FAILED - Exception during color coin supply change : " + ex.Message);
                         ColorCoinControlBoxes_HideAll();
                         ColorCoinControl_ShowCoinControls();
+
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
 
                     }
                 }
@@ -917,7 +1059,7 @@ namespace myEonWallet
             {
                 try
                 {
-                    RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinDestroy(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password);
+                    RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinDestroy(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                     if (RpcResult.Result)
                     {
@@ -937,6 +1079,9 @@ namespace myEonWallet
                     ErrorMsg("Transaction FAILED - Exception during Color Coin destroy : " + ex.Message);
                     ColorCoinControlBoxes_HideAll();
                     ColorCoinControl_ShowCoinControls();
+
+                    //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                    MSMTransactionCheckAndExport(ex);
 
                 }
 
@@ -973,7 +1118,11 @@ namespace myEonWallet
         {
             long amount = 0;
 
-            if ((long.TryParse(CCSendAmountTB.Text, out amount)) && ((AccountListView.SelectedIndex != -1)) && ((ColorCoinListView.SelectedIndex != -1)))
+            //regex check the destination address
+            string pattern = @"(EON)-([^-]{5})-([^-]{5})-([^-]{5})";
+            Match accountMatch = Regex.Match(CCRecipientTB.Text, pattern);
+
+            if ((long.TryParse(CCSendAmountTB.Text, out amount)) && (AccountListView.SelectedIndex != -1) && (ColorCoinListView.SelectedIndex != -1) && (accountMatch.Groups.Count==5))
             {
 
                 var coins = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Balance.ColoredCoins;
@@ -986,7 +1135,7 @@ namespace myEonWallet
                 {
                     try
                     {
-                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinPayment(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, CCRecipientTB.Text, coinIdent);
+                        RpcResponseClass RpcResult = await eonClient.Transaction_ColorCoinPayment(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, amount, CCRecipientTB.Text, coinIdent, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
 
                         if (RpcResult.Result)
                         {
@@ -1007,14 +1156,548 @@ namespace myEonWallet
                         ColorCoinControlBoxes_HideAll();
                         ColorCoinControl_ShowCoinControls();
 
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
                     }
                 }
 
             }
             else
             {
+                ErrorMsg("Send failure : Error in input - check the amount and recipient address are valid");
             }
 
+        }
+
+        private void DelegateSelf_BTN_Click(object sender, RoutedEventArgs e)
+        {
+            DelagationRecipientTB.Text = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId;
+        }
+
+        private async void DelegateBTN_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int amount = int.Parse(DelegationAmountTB.Text);
+                string address = DelagationRecipientTB.Text;
+
+                DepositConfirm dConfirm = new DepositConfirm("Delegate " + amount + "%  of priveleges of " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + "  TO : " + address + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
+
+                    RpcResponseClass RpcResult = await eonClient.Transaction_MultiSigDelegate(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, address, amount, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
+
+                    if (RpcResult.Result)
+                    {
+                        DebugMsg("Transaction SUCCESS -  Delegated " + amount + "%  of priveleges of " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + "  TO : " + address);
+                    }
+                    else
+                    {
+                        ErrorMsg("Transaction FAILED - Set Delegate failure : " + RpcResult.Message);
+                    }
+                }
+                else
+                {
+                }
+            }
+
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction FAILED - Exception during Set Delegate : " + ex.Message);
+
+                //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                MSMTransactionCheckAndExport(ex);
+            }
+
+        }
+
+        private async void QuorumBTN_Click(object sender, RoutedEventArgs e)
+        {
+            //get the current quorum object
+            Quorum qr = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Quorum;
+
+            //set quorum all if enabled
+            int quorumAll = 100;
+            if ((bool)CheckBox_QuorumAll.IsChecked) quorumAll = (int)QuorumAll_Slider.Value;
+
+            IDictionary<int, int> qTypes = new Dictionary<int, int>();
+
+            //if sliders are in positions other than = ALL, then add them to the qTypes Dictionary
+            if ((bool)CheckBox_QuorumAccountReg.IsChecked)
+            {
+                qTypes.Add(100, (int)QuorumAccountReg_Slider.Value);
+            }
+            if ((bool)CheckBox_QuorumPayment.IsChecked)
+            {
+                qTypes.Add(200, (int)QuorumPayment_Slider.Value);
+            }
+            if ((bool)CheckBox_QuorumDeposit.IsChecked)
+            {
+                qTypes.Add(300, (int)QuorumDepositChange_Slider.Value);
+            }
+            if ((bool)CheckBox_QuorumQuorum.IsChecked)
+            {
+                qTypes.Add(400, (int)QuorumQuorum_Slider.Value);
+            }
+
+            if ((bool)CheckBox_QuorumDelegate.IsChecked)
+            {
+                qTypes.Add(425, (int)QuorumDelegate_Slider.Value);
+            }
+            if ((bool)CheckBox_QuorumRejection.IsChecked)
+            {
+                qTypes.Add(450, (int)QuorumRejection_Slider.Value);
+            }
+            if ((bool)CheckBox_QuorumAccountPublication.IsChecked)
+            {
+                qTypes.Add(475, (int)QuorumAccountPublication_Slider.Value);
+            }
+
+
+
+            DepositConfirm dConfirm = new DepositConfirm("Set Quorum to defined values ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+            dConfirm.ShowDepositFields(false);
+            if ((bool)dConfirm.ShowDialog())
+            {
+                try
+                {
+                    RpcResponseClass RpcResult = await eonClient.Transaction_MultiSigQuorum(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, quorumAll, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked, qTypes);
+
+                    if (RpcResult.Result)
+                    {
+                        DebugMsg("Transaction SUCCESS -  Quorum configured for account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId);
+                    }
+                    else
+                    {
+                        ErrorMsg("Transaction FAILED - Quorum configuration failure : " + RpcResult.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorMsg("Transaction FAILED - Exception during Set Quorum : " + ex.Message);
+
+                    //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                    MSMTransactionCheckAndExport(ex);
+
+                }
+            }
+            else
+            {
+            }
+
+        }
+
+        private async void MultiSigRejectBTN_Click(object sender, RoutedEventArgs e)
+        {
+            KeyValuePair<string, int> item;
+            string rejectedAddress = "";
+            int weight;
+
+            try
+            {
+                item = (KeyValuePair<string, int>)VoterListView.SelectedItem;
+                rejectedAddress = item.Key;
+                weight = item.Value;
+
+                DepositConfirm dConfirm = new DepositConfirm("Reject all voting-rights to the account " + rejectedAddress + " ?\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
+                    try
+                    {
+                        RpcResponseClass RpcResult = await eonClient.Transaction_MultiSigRejection(AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password, rejectedAddress, dConfirm.TransactionNoteTB.Text, (bool)dConfirm.NoteEncryptionCheckBox.IsChecked);
+
+                        if (RpcResult.Result)
+                        {
+                            DebugMsg("Transaction SUCCESS -  Rejected voting-rights of user account " + eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].AccountDetails.AccountId + " to remote account : " + rejectedAddress);
+                        }
+                        else
+                        {
+                            ErrorMsg("Transaction FAILED - Multisig-Rejection failed : " + RpcResult.Message);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMsg("Transaction FAILED - Exception during Multisig-Rejection : " + ex.Message);
+
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
+                    }
+                }
+                else
+                {
+                }
+
+
+            }
+            catch(Exception ex)
+            {
+                ErrorMsg("Multisig-Rejection error : Voter item not selected!");
+            }
+
+           
+
+
+        }
+
+        private void MSMImportTransactionBTN_Click(object sender, RoutedEventArgs e)
+        {
+            
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string importedTX = File.ReadAllText(openFileDialog.FileName);
+
+                //show a summary of the transaction for review prior to signing
+
+
+                var tx = (Transaction)importedTX;
+
+                MSMSummaryTB.Text = GetSummaryTX(tx);
+
+                ImportedMSMTX = tx;
+                
+                MultiSigSignBTN.Visibility = Visibility.Visible;
+                MultiSigSignCancelBTN.Visibility = Visibility.Visible;
+                MSMSendLBL1.Visibility = Visibility.Visible;
+                MultiSigImportFileBTN.Visibility = Visibility.Hidden;
+
+
+            }
+
+        }
+    
+
+    private string GetSummaryTX(Transaction tx)
+    {
+
+            string summary = "";
+
+            switch(tx.Attachment.GetType().Name)
+            {
+                case ("PaymentAttachment"):
+                    EonSharp.Api.Transactions.Attachments.PaymentAttachment txPay = (EonSharp.Api.Transactions.Attachments.PaymentAttachment)tx.Attachment;
+                    summary = "Payment of " + txPay.Amount / 1000000 + " EON from Account ID:" + tx.Sender + " to AccountID: " + txPay.Recipient;
+                    break;
+
+                case ("DepositAttachment"):
+                    EonSharp.Api.Transactions.Attachments.DepositAttachment txDep = (EonSharp.Api.Transactions.Attachments.DepositAttachment)tx.Attachment;
+                    summary = "Account ID:" + tx.Sender + " change Deposit to " + txDep.Amount / 1000000 + " EON";
+                    break;
+
+                case ("RegistrationAttachment"):
+                    EonSharp.Api.Transactions.Attachments.RegistrationAttachment txReg = (EonSharp.Api.Transactions.Attachments.RegistrationAttachment)tx.Attachment;
+                    summary = "Account ID:" + tx.Sender + " register a new EON account : " + txReg.AccountId;
+                    break;
+
+                case ("ColoredCoinRegistrationAttachment"):
+                    EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment txCCReg = (EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment;
+                    summary = "Account ID:" + tx.Sender + " register Color-Coin with emission:" + txCCReg.Emission + " and " + txCCReg.Decimal + " decimals";
+                    break;
+
+                case ("ColoredCoinPaymentAttachment"):
+                    EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment txCCPay = (EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment;
+                    summary = "Pay " + txCCPay.Amount + " color coins [" + txCCPay.Color + "] from Account ID:" + tx.Sender + " to AccountID: " + txCCPay.Recipient;
+                    break;
+
+                case ("DelegateAttachment"):
+                    EonSharp.Api.Transactions.Attachments.DelegateAttachment txDel = (EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment;
+                    summary = "Delegation of " + txDel.Weight + "% voting rights of Account ID:" + tx.Sender + "to Account ID:" + txDel.Account;
+                    break;
+
+                case ("QuorumAttachment"):
+                    EonSharp.Api.Transactions.Attachments.QuorumAttachment txQor = (EonSharp.Api.Transactions.Attachments.QuorumAttachment)tx.Attachment;
+
+                    string qSummary = "Account ID :" + tx.Sender + " : set Account-Quorum to [";
+                    qSummary += " All:" + txQor.All;
+                    foreach (System.Collections.Generic.KeyValuePair<int,int> iD in txQor.Types)
+                    {
+                        qSummary += (" " + iD.Key + ":" + iD.Value);
+                    }
+                    qSummary += "]";
+                    summary = qSummary;
+                    break;
+
+                case ("RejectionAttachment"):
+                    EonSharp.Api.Transactions.Attachments.RejectionAttachment txRej = (EonSharp.Api.Transactions.Attachments.RejectionAttachment)tx.Attachment;
+                    summary = "Account ID:" + tx.Sender + " : reject voting rights to EON account : " + txRej.Account;
+                    break;
+
+                case ("ColoredCoinSupplyAttachment"):
+                    EonSharp.Api.Transactions.Attachments.ColoredCoinSupplyAttachment txCCSupply = (EonSharp.Api.Transactions.Attachments.ColoredCoinSupplyAttachment)tx.Attachment;
+                    summary = "Account ID:" + tx.Sender + " : change color coin supply to " + txCCSupply.Supply;
+                    break;
+
+                default:
+                    break;
+
+            }
+
+
+
+            return summary;
+    }
+
+
+        //cancel signing a multisig transaction
+        private void MultiSigSignCancelBTN_Click(object sender, RoutedEventArgs e)
+        {
+            MultiSigSignBTN.Visibility = Visibility.Hidden;
+            MultiSigSignCancelBTN.Visibility = Visibility.Hidden;
+            MSMSendLBL1.Visibility = Visibility.Hidden;
+            MultiSigImportFileBTN.Visibility = Visibility.Visible;
+            ImportedMSMTX = null;
+            MSMSummaryTB.Text = "";
+        }
+
+        //sign and send the selected multisig transaction
+        private async void MultiSigSignBTN_Click(object sender, RoutedEventArgs e)
+        {
+
+            try
+            {
+
+
+                Wallet wal = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex];
+
+            if (ImportedMSMTX!=null)
+            {
+
+                DepositConfirm dConfirm = new DepositConfirm(MSMSummaryTB.Text + "\r\n\r\n1. Supply the password for your encrypted wallet\r\n2. Press YES to confirm and place this transaction on the EON blockchain");
+                dConfirm.ShowDepositFields(false);
+                if ((bool)dConfirm.ShowDialog())
+                {
+                    try
+                    {
+                        RpcResponseClass RpcResult = await eonClient.Transaction_SignMSM(ImportedMSMTX, AccountListView.SelectedIndex, dConfirm.walletPasswordBox.Password);
+
+                        if (RpcResult.Result)
+                        {
+                            DebugMsg("Transaction SUCCESS - " + MSMSummaryTB.Text);
+
+                                MultiSigSignBTN.Visibility = Visibility.Hidden;
+                                MultiSigSignCancelBTN.Visibility = Visibility.Hidden;
+                                MSMSendLBL1.Visibility = Visibility.Hidden;
+                                MultiSigImportFileBTN.Visibility = Visibility.Visible;
+                                MSMSummaryTB.Text = "";
+
+
+
+                            }
+                        else
+                        {
+                            ErrorMsg("Transaction FAILED - MultiSign Sign & Send : " + RpcResult.Message);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMsg("Transaction FAILED - Exception during Multisig Sign & Send : " + ex.Message);
+
+                        //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                        MSMTransactionCheckAndExport(ex);
+
+                    }
+
+
+
+                }
+                else
+                {
+
+                }                
+
+
+
+
+
+
+            }
+
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Multisig-Sign&Send error : " + ex.Message);
+            }
+            
+
+
+        }
+
+        private void QuorumGetBTN_Click(object sender, RoutedEventArgs e)
+        {
+            //display quorum
+            Quorum qr = eonClient.WalletManager.WalletCollection[AccountListView.SelectedIndex].Information.Quorum;
+            if (qr != null)
+            {
+                int quorumAll = qr.quorum;
+                CheckBox_QuorumAll.IsChecked = true;
+                QuorumAll_Slider.IsEnabled = true;
+                QuorumAll_Slider.Value = qr.quorum;
+
+
+                QuorumAccountReg_Slider.Value = qr.quorum;
+                QuorumAccountReg_Slider.IsEnabled = false;
+                CheckBox_QuorumAccountReg.IsChecked = false;
+                
+                QuorumPayment_Slider.Value = qr.quorum;
+                QuorumPayment_Slider.IsEnabled = false;
+                CheckBox_QuorumPayment.IsChecked = false;
+
+
+                QuorumDepositChange_Slider.Value = qr.quorum;
+                QuorumDepositChange_Slider.IsEnabled = false;
+                CheckBox_QuorumDeposit.IsChecked = false;
+
+                QuorumDelegate_Slider.Value = qr.quorum;
+                QuorumDelegate_Slider.IsEnabled = false;
+                CheckBox_QuorumDelegate.IsChecked = false;
+
+                QuorumQuorum_Slider.Value = qr.quorum;
+                QuorumQuorum_Slider.IsEnabled = false;
+                CheckBox_QuorumQuorum.IsChecked = false;
+
+
+                QuorumRejection_Slider.Value = qr.quorum;
+                QuorumRejection_Slider.IsEnabled = false;
+                CheckBox_QuorumRejection.IsChecked = false;
+
+
+                QuorumAccountPublication_Slider.Value = qr.quorum;
+                QuorumAccountPublication_Slider.IsEnabled = false;
+                CheckBox_QuorumAccountPublication.IsChecked = false;
+
+                //set individual quorums
+                if (qr.QuorumByTypes != null)
+                {
+                    foreach (var qt in qr.QuorumByTypes)
+                    {
+                        switch (qt.Key)
+                        {
+                            case (100)://account registration
+                                QuorumAccountReg_Slider.Value = qt.Value;
+                                QuorumAccountReg_Slider.IsEnabled = true;
+                                CheckBox_QuorumAccountReg.IsChecked = true;
+
+                                break;
+                            case (200)://ordinary payment
+                                QuorumPayment_Slider.Value = qt.Value;
+                                QuorumPayment_Slider.IsEnabled = true;
+                                CheckBox_QuorumPayment.IsChecked = true;
+                                break;
+                            case (300)://Deposit change
+                                QuorumDepositChange_Slider.Value = qt.Value;
+                                QuorumDepositChange_Slider.IsEnabled = true;
+                                CheckBox_QuorumDeposit.IsChecked = true;
+                                break;
+                            case (400)://Quorum
+                                QuorumQuorum_Slider.Value = qt.Value;
+                                QuorumQuorum_Slider.IsEnabled = true;
+                                CheckBox_QuorumQuorum.IsChecked = true;
+                                break;
+                            case (425)://Delegate
+                                QuorumDelegate_Slider.Value = qt.Value;
+                                QuorumDelegate_Slider.IsEnabled = true;
+                                CheckBox_QuorumDelegate.IsChecked = true;
+                                break;
+                            case (450)://Rejection
+                                QuorumRejection_Slider.Value = qt.Value;
+                                QuorumRejection_Slider.IsEnabled = true;
+                                CheckBox_QuorumRejection.IsChecked = true;
+                                break;
+                            case (475)://Account Publication
+                                QuorumAccountPublication_Slider.Value = qt.Value;
+                                QuorumAccountPublication_Slider.IsEnabled = true;
+                                CheckBox_QuorumAccountPublication.IsChecked = true;
+                                break;
+                        }
+                    }
+                }
+
+
+
+            }
+            else  //if quorum is null
+            {
+                //set all quorum types to ALL value
+                CheckBox_QuorumAll.IsChecked = false;
+                QuorumAll_Slider.IsEnabled = false;
+                QuorumAll_Slider.Value = 0;
+
+
+                QuorumAccountReg_Slider.Value = 0;
+                QuorumAccountReg_Slider.IsEnabled = false;
+                CheckBox_QuorumAccountReg.IsChecked = false;
+
+                QuorumPayment_Slider.Value = 0;
+                QuorumPayment_Slider.IsEnabled = false;
+                CheckBox_QuorumPayment.IsChecked = false;
+
+
+                QuorumDepositChange_Slider.Value = 0;
+                QuorumDepositChange_Slider.IsEnabled = false;
+                CheckBox_QuorumDeposit.IsChecked = false;
+
+                QuorumDelegate_Slider.Value = 0;
+                QuorumDelegate_Slider.IsEnabled = false;
+                CheckBox_QuorumDelegate.IsChecked = false;
+
+                QuorumQuorum_Slider.Value = 0;
+                QuorumQuorum_Slider.IsEnabled = false;
+                CheckBox_QuorumQuorum.IsChecked = false;
+
+
+                QuorumRejection_Slider.Value = 0;
+                QuorumRejection_Slider.IsEnabled = false;
+                CheckBox_QuorumRejection.IsChecked = false;
+
+
+                QuorumAccountPublication_Slider.Value = 0;
+                QuorumAccountPublication_Slider.IsEnabled = false;
+                CheckBox_QuorumAccountPublication.IsChecked = false;
+            }
+        }
+
+        private void CheckBox_QuorumAccountReg_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumAccountReg_Slider.IsEnabled = (bool)CheckBox_QuorumAccountReg.IsChecked;
+        }
+
+        private void CheckBox_QuorumPayment_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumPayment_Slider.IsEnabled = (bool)CheckBox_QuorumPayment.IsChecked;
+        }
+
+        private void CheckBox_QuorumDeposit_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumDepositChange_Slider.IsEnabled = (bool)CheckBox_QuorumDeposit.IsChecked;
+        }
+        
+        private void CheckBox_QuorumQuorum_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumQuorum_Slider.IsEnabled = (bool)CheckBox_QuorumQuorum.IsChecked;
+        }
+
+        private void CheckBox_QuorumDelegate_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumDelegate_Slider.IsEnabled = (bool)CheckBox_QuorumDelegate.IsChecked;
+        }
+
+        private void CheckBox_QuorumRejection_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumRejection_Slider.IsEnabled = (bool)CheckBox_QuorumRejection.IsChecked;
+        }
+
+        private void CheckBox_QuorumAccountPublication_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumAccountPublication_Slider.IsEnabled = (bool)CheckBox_QuorumAccountPublication.IsChecked;
+        }
+
+        private void CheckBox_QuorumAll_Click(object sender, RoutedEventArgs e)
+        {
+            QuorumAll_Slider.IsEnabled = (bool)CheckBox_QuorumAll.IsChecked;
         }
     }
 

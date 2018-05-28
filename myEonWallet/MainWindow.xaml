@@ -200,7 +200,7 @@
         </DockPanel>
 
         <TabControl x:Name="tabControl" HorizontalAlignment="Left" Margin="13,34,0,0" Width="1057" Height="724" VerticalAlignment="Top" Opacity="0.865" Background="#FF004533">
-            <TabItem Header="Wallet">
+            <TabItem Header="Wallet"  Width="80">
                 <Grid Margin="5,5,5.333,-2" RenderTransformOrigin="0.5,0.5" Height="693" VerticalAlignment="Top">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
@@ -291,7 +291,7 @@
                 </Grid>
 
             </TabItem>
-            <TabItem Header="Transactions">
+            <TabItem Header="Transactions"  Width="100">
                 <Grid Background="#FF004533" Margin="5,5,5.333,0" RenderTransformOrigin="0.5,0.5" Height="685" VerticalAlignment="Top" Opacity="0.865">
                     <ListView Margin="10,57,10,178" x:Name="TransactionsListView" FontSize="10" SelectionChanged="TransactionListView_SelectionChanged" IsSynchronizedWithCurrentItem="True" Style="{DynamicResource {x:Type ListView}}" ItemContainerStyle="{DynamicResource {x:Type ListViewItem}}" Foreground="White" ToolTip="Select a transaction to see further details">
                         <ListView.View>
@@ -356,7 +356,136 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="80" Header="ColorCoin">
+            <TabItem Header="Multi-Signature" Margin="0.333,0,-0.333,0" HorizontalAlignment="Left" Width="120">
+                <Grid Opacity="0.865" Background="#FF004533" Margin="5,5,5.333,0" RenderTransformOrigin="0.5,0.5" Height="685" VerticalAlignment="Top">
+                    <GroupBox Header="MultiSig Delegation" HorizontalAlignment="Right" Height="410" VerticalAlignment="Top" Width="507" Foreground="#FFFEFEFE" Background="Black" Margin="0,265,524,0">
+                        <Grid>
+                            <Label Content="Delegate Account:" HorizontalAlignment="Left" Margin="7,20,0,0" VerticalAlignment="Top" Foreground="White"/>
+                            <TextBox x:Name="DelagationRecipientTB" HorizontalAlignment="Left" Height="24" Margin="118,23,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="286" ToolTip="Enter the recipient address to send EON to"/>
+                            <Label Content="Percentage:" HorizontalAlignment="Left" Margin="41,56,0,0" Foreground="White" Width="71" Height="27" VerticalAlignment="Top"/>
+                            <TextBox x:Name="DelegationAmountTB" HorizontalAlignment="Left" Height="24" Margin="117,59,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="52" ToolTip="Enter the amount of EON to send to the recipient above"/>
+                            <Button x:Name="DelegateBTN" Content="Delegate Priveleges" HorizontalAlignment="Left" Height="29" Margin="334,110,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="DelegateBTN_Click"/>
+                            <Button x:Name="DelegateSelf_BTN" Content="&lt; self" HorizontalAlignment="Left" Height="29" Margin="409,21,0,0" VerticalAlignment="Top" Width="76" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="DelegateSelf_BTN_Click"/>
+                            <ListView Margin="12,186,0,0" x:Name="VotingListView" FontSize="10" IsSynchronizedWithCurrentItem="True" ToolTip="Accounts that have voting rights over the selected account" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Width="473" Height="185" VerticalAlignment="Top">
+                                <ListView.View>
+                                    <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
+                                        <GridViewColumn Header="Account ID" Width="220" DisplayMemberBinding="{Binding Key}" />
+                                        <GridViewColumn Header="Percentage" Width="120" DisplayMemberBinding="{Binding Value}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <Label Content="Current Voting Rights Distribution:" HorizontalAlignment="Left" Margin="12,158,0,0" VerticalAlignment="Top" Foreground="White"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Set Quorum" HorizontalAlignment="Right" Height="410" VerticalAlignment="Top" Width="509" Foreground="#FFFEFEFE" Background="Black" Margin="0,265,10,0">
+                        <Grid>
+                            <Button x:Name="QuorumBTN" Content="Set Quorum" HorizontalAlignment="Left" Height="29" Margin="336,348,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="QuorumBTN_Click"/>
+                            <StackPanel Height="30" Margin="0,57,0,299.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="Quorum All :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumAll_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumAll_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumAll" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumAll_Click"></CheckBox>
+
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="0,89,0,267.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="AccountRegistration :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumAccountReg_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumAccountReg_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumAccountReg" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumAccountReg_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="0,121,0,235.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="OrdinaryPayment :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumPayment_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumPayment_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumPayment" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumPayment_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="0,153,0,203.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="DepositChange :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumDepositChange_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding Value, ElementName=QuorumDepositChange_Slider, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumDeposit" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumDeposit_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel Height="30" Margin="0,185,0,171.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="Quorum :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumQuorum_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding Value, ElementName=QuorumQuorum_Slider, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <CheckBox x:Name="CheckBox_QuorumQuorum" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumQuorum_Click"/>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="0,218,0,138.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="Delegate :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumDelegate_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumDelegate_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumDelegate" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumDelegate_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="0,250,0,106.667">
+                                <Grid Margin="23,0,3,0" VerticalAlignment="Center">
+                                    <Label Content="Rejection :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumRejection_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumRejection_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumRejection" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumRejection_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Height="30" Margin="23,283,3,73.667">
+                                <Grid Margin="0" VerticalAlignment="Center">
+                                    <Label Content="AccountPublication :" Foreground="White" Margin="7,0,0,0" RenderTransformOrigin="0.481,0.615"/>
+                                    <Slider x:Name="QuorumAccountPublication_Slider" HorizontalAlignment="Left" Height="26" Margin="132,0,0,0" Width="226" VerticalAlignment="Top" Maximum="100" Value="100" SmallChange="1" AutoToolTipPlacement="TopLeft"/>
+                                    <Label Content="{Binding ElementName=QuorumAccountPublication_Slider, Path=Value, Mode=OneWay}" Foreground="White" Margin="363,0,10,0" RenderTransformOrigin="0.481,0.615">
+                                    </Label>
+                                    <CheckBox x:Name="CheckBox_QuorumAccountPublication" Margin="418,0,0,-1" VerticalContentAlignment="Center" Click="CheckBox_QuorumAccountPublication_Click"></CheckBox>
+                                </Grid>
+                            </StackPanel>
+                            <Button x:Name="QuorumGetBTN" Content="Get Current Quorum" HorizontalAlignment="Left" Height="29" Margin="16,348,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="QuorumGetBTN_Click"/>
+
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Voting Rights Status" HorizontalAlignment="Right" Height="260" VerticalAlignment="Top" Width="507" Foreground="#FFFEFEFE" Background="Black" Margin="0,5,524,0">
+                        <Grid>
+                            <ListView Margin="11,10,0,0" x:Name="VoterListView" FontSize="10" IsSynchronizedWithCurrentItem="True" ToolTip="Select a delegate account to view pending transactions requiring approval" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Width="474" Height="185" VerticalAlignment="Top">
+                                <ListView.View>
+                                    <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle1}" >
+                                        <GridViewColumn Header="Account ID" Width="220" DisplayMemberBinding="{Binding Key}" />
+                                        <GridViewColumn Header="Percentage" Width="120" DisplayMemberBinding="{Binding Value}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <Button x:Name="MultiSigRejectBTN" Content="Reject Delegated Rights" HorizontalAlignment="Left" Height="29" Margin="334,198,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="MultiSigRejectBTN_Click" ToolTip="Reject voting rights for the selected multisig account"/>
+                        </Grid>
+                    </GroupBox>
+                    <Label Content=" - Transaction Type -" HorizontalAlignment="Left" Height="26" Margin="563,304,0,0" VerticalAlignment="Top" Width="94" Foreground="#FF0DD200" FontSize="9" FontFamily="Segoe UI Semibold" Background="{x:Null}"/>
+                    <Label Content=" - Quorum Adjustment -" HorizontalAlignment="Left" Height="26" Margin="741,304,0,0" VerticalAlignment="Top" Width="123" Foreground="#FF0DD200" FontSize="9" FontFamily="Segoe UI Semibold" Background="{x:Null}"/>
+                    <Label Content=" - enable -" HorizontalAlignment="Left" Height="26" Margin="945,304,0,0" VerticalAlignment="Top" Width="55" Foreground="#FF0DD200" FontSize="9" FontFamily="Segoe UI Semibold" Background="{x:Null}"/>
+                    <GroupBox Header="Import and Sign a MutliSig transaction" HorizontalAlignment="Right" Height="260" VerticalAlignment="Top" Width="509" Foreground="#FFFEFEFE" Background="Black" Margin="0,5,10,0">
+                        <Grid>
+                            <Button x:Name="MultiSigSignCancelBTN" Content="Cancel" HorizontalAlignment="Left" Height="29" Margin="336,198,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="MultiSigSignCancelBTN_Click" ToolTip="Reject voting rights for the selected multisig account" Visibility="Hidden"/>
+                            <Button x:Name="MultiSigImportFileBTN" Content="Import Transaction from file" HorizontalAlignment="Left" Height="29" Margin="135,17,0,0" VerticalAlignment="Top" Width="225" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="MSMImportTransactionBTN_Click" ToolTip="Reject voting rights for the selected multisig account"/>
+                            <TextBlock x:Name="MSMSummaryTB" Margin="10,96,9.667,56.667" Foreground="#FFE8FF00" TextWrapping="Wrap" FontSize="16" FontFamily="Segoe UI Semibold" TextAlignment="Center"></TextBlock>
+                            <Label x:Name="MSMSendLBL1" Content="Review Transaction Summary" HorizontalAlignment="Left" Margin="162,65,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.649,0.705" Foreground="White" Width="178" Visibility="Hidden"/>
+                            <Button x:Name="MultiSigSignBTN" Content="Sign &amp; Send" HorizontalAlignment="Left" Height="29" Margin="23,198,0,0" VerticalAlignment="Top" Width="151" Background="{x:Null}" Foreground="White" BorderBrush="#FF25CD00" Click="MultiSigSignBTN_Click" ToolTip="Reject voting rights for the selected multisig account" Visibility="Hidden"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+
+            <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="80" Header="Color-Coins">
                 <Grid Opacity="0.865" Background="#FF004533" Margin="4,-1,6.333,0" RenderTransformOrigin="0.5,0.5" Height="695" VerticalAlignment="Top">
                     <GroupBox x:Name="ColorCoinCreate_GroupBox" Header="Create Colored Coin" Height="212" VerticalAlignment="Top" Foreground="#FFFEFEFE" Background="Black" Margin="10,255,0,0" HorizontalAlignment="Left" Width="400" Visibility="Hidden">
                         <Grid>
@@ -492,9 +621,9 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="55" Header="Config">
+            <TabItem Margin="0,0,-0.333,0" HorizontalAlignment="Left" Width="80" Header="Config">
                 <Grid Opacity="0.865" Background="#FF004533" Margin="0,2,10.333,-1" RenderTransformOrigin="0.5,0.5" Height="695" VerticalAlignment="Top">
-                    <GroupBox Header="Application Settings" HorizontalAlignment="Right" Height="669" VerticalAlignment="Top" Width="1041" Foreground="#FFFEFEFE" Background="Black">
+                    <GroupBox Header="Application Settings" HorizontalAlignment="Right" Height="685" VerticalAlignment="Top" Width="1041" Foreground="#FFFEFEFE" Background="Black" Margin="0,0,-4,0">
                         <TextBox x:Name="Config_PeerAddressTB" HorizontalAlignment="Left" Height="21" Margin="107,51,0,0" TextWrapping="Wrap" Text="{Binding Peer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="340" FontWeight="Bold" Background="#FF515151" BorderBrush="{x:Null}" Foreground="#FF36DE25" ToolTip="Configure the peer address (valid URI highlights green)">
                             <TextBox.DataContext>
                                 <myEonClient:MyEonClientCoreConfig/>
@@ -521,11 +650,13 @@
                         <Label Content="Recent History MaxConfirmed :" Margin="0,2,0,54.667" Foreground="White" Width="184"/>
                         <local:NumericalUpDownControl x:Name="Config_TransactionRecentConfirmedMax" Margin="21,31,0,0" Foreground="{x:Null}" Width="79" Height="30" VerticalAlignment="Top" FontWeight="Bold" ToolTip="Limits the number of confirmed entries shown in the transaction summary view" />
                     </StackPanel>
-                    <Label Content="Peer Server Address:" Margin="19,33,887,639" Foreground="White"/>
-                    <Label x:Name="DefaultPeerButton" Content="Apply Default" Margin="380,86,583,583" Foreground="#FF00FF0F" MouseLeftButtonDown="DefaultPeerButton_MouseLeftButtonDown" FontWeight="Bold" FontSize="10" ToolTip="Apply the default EON peer server adfdress"/>
+                    <Label Content="Peer Server Address:" Margin="19,33,887,636" Foreground="White"/>
+                    <Label x:Name="TestnetPeerButton" Content="Use Test net" Margin="294,97,669,573" Foreground="#FF00FF0F" MouseLeftButtonDown="TestnetPeerButton_MouseLeftButtonDown" FontWeight="Bold" FontSize="10" ToolTip="Apply the TEST net peer server adfdress"/>
+                    <Label x:Name="MainnetPeerButton" Content="Use Main net" Margin="202,97,757,573" Foreground="#FF00FF0F" MouseLeftButtonDown="MainnetPeerButton_MouseLeftButtonDown" FontWeight="Bold" FontSize="10" ToolTip="Apply the MAIN net peer server adfdress"/>
+                    <Label Content="After altering the peer address, you must restart myEonWallet" Margin="113,119,589,548" Foreground="Red"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Log" Margin="0.333,0,-0.333,0" HorizontalAlignment="Left" Width="50">
+            <TabItem Header="Log" Margin="0.333,0,-0.333,0" HorizontalAlignment="Left" Width="80">
                 <Grid Opacity="0.865" Background="#FF004533" Margin="5,5,5.333,0" RenderTransformOrigin="0.5,0.5" Height="685" VerticalAlignment="Top">
                     <GroupBox Header="Debug Log" HorizontalAlignment="Left" Height="386" Margin="21,4,0,0" VerticalAlignment="Top" Width="996" Foreground="White" Background="#FF247927">
 
@@ -556,7 +687,7 @@
                 <MenuItem Header="_Save"/>
             </MenuItem>
         </Menu>
-        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="151" Margin="32,597,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}">
+        <GroupBox x:Name="DebugViewGroupBox" Header=" Debug information" HorizontalAlignment="Left" Height="151" Margin="32,597,0,0" VerticalAlignment="Top" Width="1021" Background="Black" Opacity="0.8" Foreground="#FF2EFF00" BorderBrush="{x:Null}" Visibility="Hidden">
             <TextBlock x:Name="DebugViewerTB" HorizontalAlignment="Left" Height="141" Margin="10,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="992" Foreground="White" FontWeight="Bold"/>
         </GroupBox>
     </Grid>

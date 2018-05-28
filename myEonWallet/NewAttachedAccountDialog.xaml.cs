@@ -13,7 +13,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using myEonClient;
 using EonSharp;
-
+using System.Text.RegularExpressions;
+using Microsoft.Win32;
+using System.IO;
 
 namespace myEonWallet
 {
@@ -116,7 +118,10 @@ namespace myEonWallet
             catch (Exception ex)
             {
                 Console.WriteLine("Transaction Register() Exception : " + ex.Message);
-                result = false;
+
+                //check if its an MSM transaction that didnt reach quorem threshold (allow to exoprt)
+                if (MSMTransactionCheckAndExport(ex)) result = true ;
+                else result = false;
             }
 
             if (result)
@@ -138,6 +143,40 @@ namespace myEonWallet
             }
 
 
+        }
+
+        private bool MSMTransactionCheckAndExport(Exception ex)
+        {
+            bool result=false;
+
+            //detect multisig send the doesnt reach quorum - we need to export the transaction
+            string response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
+
+            if (response.Contains("-32602"))
+            {
+                string request = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcRequest;
+                string txRequestPattern = @"params"":\[([^]]*)";
+                Match requestMatch = Regex.Match(request, txRequestPattern);
+
+                string transaction = "";
+
+                if (requestMatch.Groups.Count == 2) transaction = requestMatch.Groups[1].Value;
+
+
+                //DebugMsg("MSM transaction did not reach quorum - exporting...");
+
+                MSMTXDialog msmDialog = new MSMTXDialog("MSM Transaction detected\r\n\r\nThis transaction needs to be signed by more delegates to acheive quorem. Export this transaction to a file now ?", "");
+                msmDialog.Topmost = true;
+                if ((bool)msmDialog.ShowDialog())
+                {
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Title = "Export your signed multisig transaction to file to share with delegates....";
+                    if (saveFileDialog.ShowDialog() == true) File.WriteAllText(saveFileDialog.FileName, transaction);
+                }
+
+                result = true;                
+            }
+            return result;
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)

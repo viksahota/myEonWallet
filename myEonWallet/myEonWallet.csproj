@@ -100,6 +100,9 @@
     <Compile Include="DepositConfirm.xaml.cs">
       <DependentUpon>DepositConfirm.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MSMTXDialog.xaml.cs">
+      <DependentUpon>MSMTXDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MsgBoxYesNo.xaml.cs">
       <DependentUpon>MsgBoxYesNo.xaml</DependentUpon>
     </Compile>
@@ -120,6 +123,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DepositConfirm.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MSMTXDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

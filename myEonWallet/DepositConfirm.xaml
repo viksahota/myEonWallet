@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:myEonWallet"
         mc:Ignorable="d"
-        Title="DepositConfirm" Height="342" Width="342.667" ResizeMode="NoResize"
+        Title="DepositConfirm" Height="385.457" Width="384.766" ResizeMode="NoResize"
 
         WindowStartupLocation="CenterScreen" Background="Transparent" AllowsTransparency="True" WindowStyle="None">
 
@@ -15,22 +15,22 @@
         <Border.Background>
             <ImageBrush ImageSource="images/SplashBackground.png" Opacity="100"/>
         </Border.Background>
-        <Grid>
+        <Grid Margin="-0.333,-0.333,0,-0.333">
             <Grid.RowDefinitions>
-                <RowDefinition Height="3*"></RowDefinition>
-                <RowDefinition Height="1*"></RowDefinition>
+                <RowDefinition Height="317*"></RowDefinition>
+                <RowDefinition Height="58*"></RowDefinition>
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
-            <Viewbox Margin="0,34,-0.333,0" Height="132" VerticalAlignment="Top">
-                <TextBlock x:Name="txtMessage" Width="433" 
+            <Viewbox Margin="0,10,-0.333,0" Height="145" VerticalAlignment="Top">
+                <TextBlock x:Name="txtMessage" Width="498" 
 
                 FontSize="18" TextWrapping="Wrap" 
 
-                TextAlignment="Center" Text="Confirm transfer of 1 EON to your Deposit balance ?" Foreground="#FFC90F0F" FontWeight="Bold" Margin="10,0" Height="181" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                TextAlignment="Center" Text="Confirm transfer of 1 EON to your Deposit balance ?" Foreground="White" FontWeight="Bold" Margin="10,0" Height="195" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <TextBlock.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform/>
@@ -42,29 +42,32 @@
                 </TextBlock>
             </Viewbox>
 
-            <Viewbox Grid.Row="1" Margin="0,9.667,-0.333,0">
-                <StackPanel Orientation="Horizontal">
+            <Viewbox Grid.Row="1" Margin="0,9.667,-0.333,0.333">
+                <StackPanel Orientation="Horizontal" Height="45" Width="143">
                     <Button Content="Yes" x:Name="YesButton" 
 
-                    Margin="10" HorizontalAlignment="Left" 
+                    Margin="10,0" HorizontalAlignment="Left" 
 
                     VerticalAlignment="Top" Width="51" 
 
-                    Click="Yes_Click" VerticalContentAlignment="Top" Height="22" Background="{x:Null}" Foreground="#FF15BD24" FontWeight="Bold" BorderBrush="{x:Null}" Visibility="Hidden"/>
+                    Click="Yes_Click" VerticalContentAlignment="Top" Height="32" Background="{x:Null}" Foreground="#FF15BD24" FontWeight="Bold" BorderBrush="{x:Null}" Visibility="Hidden" FontSize="16"/>
                     <Button Content="No" x:Name="NoButton" 
 
-                    Margin="10" HorizontalAlignment="Center" 
+                    Margin="10,0" HorizontalAlignment="Center" 
 
-                    VerticalAlignment="Top" Width="53" 
+                    VerticalAlignment="Top" Width="61" 
 
-                    Click="No_Click" IsCancel="True" Height="23" VerticalContentAlignment="Top" Foreground="#FFF32500" FontWeight="Bold" Background="{x:Null}" BorderBrush="{x:Null}"/>
+                    Click="No_Click" IsCancel="True" Height="33" VerticalContentAlignment="Top" Foreground="#FFF32500" FontWeight="Bold" Background="{x:Null}" BorderBrush="{x:Null}" FontSize="16"/>
                 </StackPanel>
             </Viewbox>
-            <PasswordBox x:Name="walletPasswordBox" HorizontalAlignment="Left" Margin="173,221,0,0" VerticalAlignment="Top" Width="115" PasswordChanged="walletPasswordBox_PasswordChanged" Height="18"/>
-            <Label Content="Wallet Encryption Password :" HorizontalAlignment="Left" Height="25" Margin="-2,217,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
-            <Label x:Name="DepositLabel1" Content="Set Deposit amount to :" HorizontalAlignment="Left" Height="25" Margin="-2,185,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
-            <TextBox x:Name="DepositAmountTB" HorizontalAlignment="Left" Height="21" Margin="173,189,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="115" HorizontalContentAlignment="Right"/>
-            <Label x:Name="DepositLabel2" Content="EON" HorizontalAlignment="Left" Height="25" Margin="288,185,0,0" VerticalAlignment="Top" Width="35" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+            <PasswordBox x:Name="walletPasswordBox" HorizontalAlignment="Left" Margin="188,280,0,0" VerticalAlignment="Top" Width="115" PasswordChanged="walletPasswordBox_PasswordChanged" Height="18" Foreground="White" Background="{x:Null}" BorderBrush="#FFFF3E00"/>
+            <Label Content="Wallet Encryption Password :" HorizontalAlignment="Left" Height="25" Margin="13,276,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+            <Label x:Name="DepositLabel1" Content="Set Deposit amount to :" HorizontalAlignment="Left" Height="25" Margin="13,244,0,0" VerticalAlignment="Top" Width="170" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+            <TextBox x:Name="DepositAmountTB" HorizontalAlignment="Left" Height="21" Margin="188,248,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="115" HorizontalContentAlignment="Right" Foreground="White" Background="{x:Null}"/>
+            <Label x:Name="DepositLabel2" Content="EON" HorizontalAlignment="Left" Height="25" Margin="303,244,0,0" VerticalAlignment="Top" Width="35" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Foreground="White"/>
+            <TextBox x:Name="TransactionNoteTB" HorizontalAlignment="Left" Height="71" Margin="146,168,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="192" MaxLength="64" MaxLines="64" Background="{x:Null}" BorderBrush="#FF999D05" Foreground="White"/>
+            <Label x:Name="NoteLabel1_LBL" Content="Add a note :" HorizontalAlignment="Left" Height="25" Margin="44,164,0,0" VerticalAlignment="Top" Width="81" VerticalContentAlignment="Center" Foreground="White"/>
+            <CheckBox x:Name="NoteEncryptionCheckBox" Content="encrypt" HorizontalAlignment="Left" Height="19" Margin="53,194,0,0" VerticalAlignment="Top" Width="60" Foreground="White" FontSize="10" VerticalContentAlignment="Center"/>
         </Grid>
     </Border>
 </Window>

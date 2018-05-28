@@ -38,7 +38,11 @@ namespace myEonWallet
 
         private void OpenRegLink_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("https://testnet.eontechnology.org/");
+            //launch mainnet registration page for primary accounts, or testnet registration page
+            if (eonClient.coreConfig.Peer.Contains("testnet")) Process.Start("https://testnet.eontechnology.org/");
+            else Process.Start("https://portal.eontechnology.org/#/verification?accountId=" + AccountID_TB.Text);
+
+
             AddButton.Visibility = Visibility.Visible;
         }
 

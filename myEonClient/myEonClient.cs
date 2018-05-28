@@ -216,7 +216,7 @@ namespace myEonClient
                 EonClient.ClassMapper[typeof(EonSharp.Network.ITransportContext)] = new ActivatorDescriptor[]
                     {
                         new ActivatorDescriptor(typeof(EonSharp.Network.Transports.HttpTransportClient)),
-                        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted", "accounts.getBalance", "coloredCoin.getInfo" } })
+                        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted", "accounts.getBalance", "colored.getInfo" } })
                     };
 
                 eonSharpClient = new EonClient(coreConfig.Peer);
@@ -285,39 +285,43 @@ namespace myEonClient
             bool change = false;
 
             //get a balance update for each wallet
-            foreach (Wallet wal in WalletManager.WalletCollection)
+            try
             {
-                try
+                foreach (Wallet wal in WalletManager.WalletCollection)
                 {
-                    long oldAmount = 0;
-                    long oldDeposit = 0;
-
-                    //update the balance & deposit values
-                    if (wal.Information != null)
+                    try
                     {
-                        oldAmount = wal.Information.Amount;
-                        oldDeposit = wal.Information.Deposit;
+                        long oldAmount = 0;
+                        long oldDeposit = 0;
+
+                        //update the balance & deposit values
+                        if (wal.Information != null)
+                        {
+                            oldAmount = wal.Information.Amount;
+                            oldDeposit = wal.Information.Deposit;
+                        }
+
+                        await wal.RefreshAsync(eonSharpClient);
+
+
+
+                        //check for a change in amount or deposit, inform the wallet to update the display if necessary.
+                        if (oldAmount != wal.Information.Amount)
+                        {
+                            change = true;
+                        }
+                        if (oldDeposit != wal.Information.Deposit)
+                        {
+                            change = true;
+                        }
                     }
-
-                    await wal.RefreshAsync(eonSharpClient);
-
-
-
-                    //check for a change in amount or deposit, inform the wallet to update the display if necessary.
-                    if (oldAmount != wal.Information.Amount)
+                    catch (Exception ex)
                     {
-                        change = true;
+                        ErrorMsg("UpdateBalances() - Exception getting balance update for " + wal.AccountDetails.AccountId + " : " + ex.Message);
                     }
-                    if (oldDeposit != wal.Information.Deposit)
-                    {
-                        change = true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ErrorMsg("UpdateBalances() - Exception getting balance update for " + wal.AccountDetails.AccountId + " : " + ex.Message);
                 }
             }
+            catch{ }
 
             //callback to the consumer to update the main balance/deposit display since an update occured
             if ((UpdateNow | change) && (WalletManager.WalletCollection.Count > 0)) BalanceUpdateMsg("");
@@ -473,7 +477,7 @@ namespace myEonClient
             return RpcResult;
         }
 
-        public async Task<RpcResponseClass> Transaction_SetDeposit(int index, decimal amountEON, string senderPassword)
+        public async Task<RpcResponseClass> Transaction_SetDeposit(int index, decimal amountEON, string senderPassword, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
             long amount = (long)(amountEON * 1000000);
@@ -482,6 +486,15 @@ namespace myEonClient
             {
                 Wallet senderWallet = WalletManager.WalletCollection[index];
                 EonSharp.Api.Transactions.Deposit dTX = new EonSharp.Api.Transactions.Deposit(senderWallet.AccountDetails.AccountId, amount, 3600, 10, 1);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) dTX.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else dTX.Note = note;
+                }
+
                 dTX.SignTransaction(WalletManager.WalletCollection[index].GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(dTX);
                 RpcResult.Result = true;
@@ -497,7 +510,7 @@ namespace myEonClient
         }
         
         //Process an ordinary payment transaction
-        public async Task<RpcResponseClass> Transaction_SendPayment(int index, string recipient, decimal amount, string senderPassword)
+        public async Task<RpcResponseClass> Transaction_SendPayment(int index, string recipient, decimal amount, string senderPassword, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -505,6 +518,15 @@ namespace myEonClient
             {
                 Wallet senderWallet = WalletManager.WalletCollection[index];
                 EonSharp.Api.Transactions.Payment payment = new EonSharp.Api.Transactions.Payment(senderWallet.AccountDetails.AccountId, (long)amount, recipient, 3600, 10, 1);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) payment.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else payment.Note = note;
+                }
+
                 payment.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(payment);
                 RpcResult.Result = true;
@@ -520,11 +542,34 @@ namespace myEonClient
             return RpcResult;
         }
 
+        //Sign and send an MSM transaction
+        public async Task<RpcResponseClass> Transaction_SignMSM(EonSharp.Api.Transaction msmtx, int index, string senderPassword)
+        {
+            RpcResponseClass RpcResult = new RpcResponseClass();
+
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[index];
+                msmtx.ConfirmTransaction(senderWallet.AccountDetails.AccountId, senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(msmtx);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_SignMSM() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+
+
+            return RpcResult;
+        }
+
         #endregion
-        
+
         #region Color Coin transactions
 
-        public async Task<RpcResponseClass> Transaction_ColorCoinRegistration(int senderAccountIndex, string senderPassword, long EmissionAmount, int DecimalPoints)
+        public async Task<RpcResponseClass> Transaction_ColorCoinRegistration(int senderAccountIndex, string senderPassword, long EmissionAmount, int DecimalPoints, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -532,6 +577,15 @@ namespace myEonClient
             {
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
                 EonSharp.Api.Transactions.ColoredCoinRegistration ccReg = new EonSharp.Api.Transactions.ColoredCoinRegistration(senderWallet.AccountDetails.AccountId, EmissionAmount, DecimalPoints);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) ccReg.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else ccReg.Note = note;
+                }
+
                 ccReg.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccReg);
                 RpcResult.Result = true;
@@ -545,7 +599,7 @@ namespace myEonClient
             return RpcResult;
         }
 
-        public async Task<RpcResponseClass> Transaction_ColorCoinPayment(int senderAccountIndex, string senderPassword, long Amount, string Recipient, string ColorCoinTypeID)
+        public async Task<RpcResponseClass> Transaction_ColorCoinPayment(int senderAccountIndex, string senderPassword, long Amount, string Recipient, string ColorCoinTypeID, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -553,6 +607,16 @@ namespace myEonClient
             {
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
                 EonSharp.Api.Transactions.ColoredCoinPayment ccPay = new EonSharp.Api.Transactions.ColoredCoinPayment(senderWallet.AccountDetails.AccountId, Amount, Recipient, ColorCoinTypeID);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) ccPay.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else ccPay.Note = note;
+                }
+
+
                 ccPay.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccPay);
                 RpcResult.Result = true;
@@ -566,16 +630,40 @@ namespace myEonClient
             return RpcResult;
         }
 
-        public async Task<RpcResponseClass> Transaction_ColorCoinDestroy(int senderAccountIndex, string senderPassword)
+        public async Task<RpcResponseClass> Transaction_ColorCoinDestroy(int senderAccountIndex, string senderPassword, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
-            RpcResult = await Transaction_ColorCoinSupply(senderAccountIndex, senderPassword,(long)0);
+            try
+            {
+                Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
+                EonSharp.Api.Transactions.ColoredCoinSupply ccSupply = new EonSharp.Api.Transactions.ColoredCoinSupply(senderWallet.AccountDetails.AccountId, (long)0);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) ccSupply.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else ccSupply.Note = note;
+                }
+
+                ccSupply.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
+                await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccSupply);
+                RpcResult.Result = true;
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Transaction_ColorCoinSupply() - Exception : " + ex.Message);
+                RpcResult.Result = false;
+                throw ex;
+            }
+            
+           // RpcResult = await Transaction_ColorCoinSupply(senderAccountIndex, senderPassword,(long)0);
 
             return RpcResult;
         }
 
-        public async Task<RpcResponseClass> Transaction_ColorCoinSupply(int senderAccountIndex, string senderPassword, long MoneySupply)
+        public async Task<RpcResponseClass> Transaction_ColorCoinSupply(int senderAccountIndex, string senderPassword, long MoneySupply, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -583,6 +671,15 @@ namespace myEonClient
             {
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
                 EonSharp.Api.Transactions.ColoredCoinSupply ccSupply = new EonSharp.Api.Transactions.ColoredCoinSupply(senderWallet.AccountDetails.AccountId, MoneySupply);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) ccSupply.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else ccSupply.Note = note;
+                }
+
                 ccSupply.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(ccSupply);
                 RpcResult.Result = true;
@@ -630,7 +727,7 @@ namespace myEonClient
                         }
                     }
 
-                    DebugMsg("GetTransactions() - Retreived transactions OK");
+                    //DebugMsg("GetTransactions() - Retreived transactions OK");
                 }
                 catch (Exception ex)
                 {
@@ -686,13 +783,37 @@ namespace myEonClient
                         ntx.Type = "Color Coin Registration";
                         ntx.AttachedColorCoinEmission = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).Emission;
                         ntx.AttachedAmount = ntx.AttachedColorCoinEmission;
-                        ntx.AttachedColorCoinDecimals = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).DecimalPoint;
+                        ntx.AttachedColorCoinDecimals = ((EonSharp.Api.Transactions.Attachments.ColoredCoinRegistrationAttachment)tx.Attachment).Decimal;
                     }
                     else if (tx.Attachment.GetType().Name == "ColoredCoinPaymentAttachment")
                     {
                         ntx.Type = "Color Coin Payment";
                         ntx.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
                        
+                    }
+                    else if (tx.Attachment.GetType().Name == "DelegateAttachment")
+                    {
+                        ntx.Type = "MultiSig Delegate " + (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight + "%";
+                        //nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight;
+                        ntx.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Account;
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "QuorumAttachment")
+                    {
+                        ntx.Type = "MultiSig Quorum";
+                        //nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight;
+                        //nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Account;
+                    }
+                    else if (tx.Attachment.GetType().Name == "RejectionAttachment")
+                    {
+                        ntx.Type = "MultiSig Rejection";
+                        ntx.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.RejectionAttachment)tx.Attachment).Account;
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinSupplyAttachment")
+                    {
+                        ntx.Type = "Color Coin Supply";
+                        ntx.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinSupplyAttachment)tx.Attachment).Supply;
+
                     }
 
                     TransactionHistory.ConfirmedTransactionCollection.Add(ntx);
@@ -754,6 +875,33 @@ namespace myEonClient
                         nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
 
                     }
+                    else if (tx.Attachment.GetType().Name == "DelegateAttachment")
+                    {
+                        nT.Type = "MultiSig Delegate " + (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight + "%";
+                        nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight;
+                        nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Account;
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "QuorumAttachment")
+                    {
+                        nT.Type = "MultiSig Quorum";
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "RejectionAttachment")
+                    {
+                        nT.Type = "MultiSig Rejection";
+                        nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.RejectionAttachment)tx.Attachment).Account;
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinSupplyAttachment")
+                    {
+                        nT.Type = "Color Coin Supply";
+                        nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinSupplyAttachment)tx.Attachment).Supply;
+
+                    }
+                    else
+                    {
+
+                    }
 
 
                     //update if entry is different
@@ -806,6 +954,34 @@ namespace myEonClient
                         nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinPaymentAttachment)tx.Attachment).Amount;
 
                     }
+                    else if (tx.Attachment.GetType().Name == "DelegateAttachment")
+                    {
+                        nT.Type = "MultiSig Delegate " + (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight + "%";
+                        //nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight;
+                        nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Account;
+
+                    }
+                    else if (tx.Attachment.GetType().Name == "QuorumAttachment")
+                    {
+                        nT.Type = "MultiSig Quorum";
+                        //nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Weight;
+                        //nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.DelegateAttachment)tx.Attachment).Account;
+                    }
+                    else if (tx.Attachment.GetType().Name == "RejectionAttachment")
+                    {
+                        nT.Type = "MultiSig Rejection";
+                        nT.AttachedRecipient = ((EonSharp.Api.Transactions.Attachments.RejectionAttachment)tx.Attachment).Account;
+                    }
+                    else if (tx.Attachment.GetType().Name == "ColoredCoinSupplyAttachment")
+                    {
+                        nT.Type = "Color Coin Supply";
+                        nT.AttachedAmount = (decimal)((EonSharp.Api.Transactions.Attachments.ColoredCoinSupplyAttachment)tx.Attachment).Supply;
+
+                    }
+                    else
+                    {
+
+                    }
 
                     //update if entry is different
                     if (TransactionHistory.SummaryTransactionCollection.Count < (targetIndex + 1)) UIContext.Send(x => TransactionHistory.SummaryTransactionCollection.Add(nT), null);
@@ -831,7 +1007,7 @@ namespace myEonClient
 
         #region multisig transactions
 
-        public async Task<RpcResponseClass> Transaction_MultiSigDelegate(int senderAccountIndex, string senderPassword, string DelegateID, int DelegatedWeight)
+        public async Task<RpcResponseClass> Transaction_MultiSigDelegate(int senderAccountIndex, string senderPassword, string DelegateID, int DelegatedWeight, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -840,6 +1016,14 @@ namespace myEonClient
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
 
                 EonSharp.Api.Transactions.Delegate msDelegate = new EonSharp.Api.Transactions.Delegate(senderWallet.AccountDetails.AccountId, DelegateID, DelegatedWeight);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) msDelegate.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else msDelegate.Note = note;
+                }
 
                 msDelegate.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(msDelegate);
@@ -854,7 +1038,7 @@ namespace myEonClient
             return RpcResult;
         }
 
-        public async Task<RpcResponseClass> Transaction_MultiSigQuorum(int senderAccountIndex, string senderPassword, int QuorumAll, IDictionary<int, int> QuorumTypes = null)
+        public async Task<RpcResponseClass> Transaction_MultiSigQuorum(int senderAccountIndex, string senderPassword, int QuorumAll, string note, bool encryptNote, IDictionary<int, int> QuorumTypes = null)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -863,6 +1047,14 @@ namespace myEonClient
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
 
                 EonSharp.Api.Transactions.Quorum msQuorum = new EonSharp.Api.Transactions.Quorum(senderWallet.AccountDetails.AccountId, QuorumAll, QuorumTypes);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) msQuorum.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else msQuorum.Note = note;
+                }
 
                 msQuorum.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(msQuorum);
@@ -878,7 +1070,7 @@ namespace myEonClient
         }
 
 
-        public async Task<RpcResponseClass> Transaction_MultiSigRejection(int senderAccountIndex, string senderPassword, string RejectedAccountID)
+        public async Task<RpcResponseClass> Transaction_MultiSigRejection(int senderAccountIndex, string senderPassword, string RejectedAccountID, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -887,6 +1079,14 @@ namespace myEonClient
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
 
                 EonSharp.Api.Transactions.Rejection msReject = new EonSharp.Api.Transactions.Rejection(senderWallet.AccountDetails.AccountId, RejectedAccountID);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) msReject.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else msReject.Note = note;
+                }
 
                 msReject.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(msReject);
@@ -902,7 +1102,7 @@ namespace myEonClient
         }
 
 
-        public async Task<RpcResponseClass> Transaction_MultiSigPublication(int senderAccountIndex, string senderPassword, string PublicationSeed)
+        public async Task<RpcResponseClass> Transaction_MultiSigPublication(int senderAccountIndex, string senderPassword, string PublicationSeed, string note, bool encryptNote)
         {
             RpcResponseClass RpcResult = new RpcResponseClass();
 
@@ -911,6 +1111,14 @@ namespace myEonClient
                 Wallet senderWallet = WalletManager.WalletCollection[senderAccountIndex];
 
                 EonSharp.Api.Transactions.Publication msPublication = new EonSharp.Api.Transactions.Publication(senderWallet.AccountDetails.AccountId, PublicationSeed);
+
+                //set the plain or encrypted transaction note
+                if (note == "") note = " "; //populate a default note of single space if there is no input to avoid TX error (if so do not encrypt even if flagged)
+                else
+                {
+                    if (encryptNote) msPublication.Note = senderWallet.Keystore.EncryptMessage(note, senderPassword);
+                    else msPublication.Note = note;
+                }
 
                 msPublication.SignTransaction(senderWallet.GetExpandedKey(senderPassword));
                 await eonSharpClient.Bot.Transactions.PutTransactionAsync(msPublication);
