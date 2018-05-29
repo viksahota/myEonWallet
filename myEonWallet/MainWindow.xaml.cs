@@ -463,7 +463,7 @@ namespace myEonWallet
             //detect multisig send the doesnt reach quorum - we need to export the transaction
             string response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
 
-            if (response.Contains("-32602"))
+            if (response.Contains("The quorum is not exist"))
             {
                 string request = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcRequest;
                 string txRequestPattern = @"params"":\[([^]]*)";
