@@ -287,6 +287,7 @@
 
                     <Label Content="= Total EON" HorizontalAlignment="Left" Margin="609,38,0,0" VerticalAlignment="Top" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="99" Foreground="White" Grid.Column="1"/>
                     <Label x:Name="TotalEON_LBL" Content="0" HorizontalAlignment="Left" Margin="583,70,0,0" VerticalAlignment="Top" Width="160" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}" Foreground="White" Grid.Column="1" ToolTip="The current deposit (staked) balance of the selected account" Height="27"/>
+                    <Image Source="images/color_logo_transparent.png" Margin="10,399,10,-16" Height="310" Opacity="0.3" Grid.ColumnSpan="2"/>
 
                 </Grid>
 
@@ -306,6 +307,7 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <Image Source="images/color_logo_transparent.png" Margin="10,197,9.667,178" Height="310" Opacity="0.3"/>
                     <Button x:Name="TransactionsListViewRefreshButton" Margin="338,9,653,635" HorizontalAlignment="Center" Width="50" BorderBrush="{x:Null}" Background="{x:Null}" Click="TransactionsListViewRefreshButton_Click">
                         <StackPanel Orientation="Horizontal" Height="41" Width="41" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Image Source="images/refresh.png" Height="35" Width="35" Margin="4,3,2,5.333" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform" ToolTip="Refresh the transaction history for the selected account"/>
@@ -322,11 +324,7 @@
                         <Grid>
                             <Label Content="Transaction ID :" HorizontalAlignment="Left" Margin="10,27,0,0" VerticalAlignment="Top" Foreground="White" Width="127" FontSize="16" HorizontalContentAlignment="Right"/>
                             <Label Content="Timestamp :" HorizontalAlignment="Left" Margin="424,27,0,0" VerticalAlignment="Top" Foreground="White" Width="98" FontSize="16" HorizontalContentAlignment="Right"/>
-                            <TextBlock Margin="139,31,599.667,77.333" FontSize="18" Foreground="#FFA1A09F" ToolTip="The unique transaction ID. Click to view this transaction in the EON block explorer">
-                                <Hyperlink Name="TransactionLink" Click="TransactionLink_Click" >
-                                    - - - - -
-                                </Hyperlink>
-                            </TextBlock>
+                            <TextBlock Margin="139,31,599.667,77.333" FontSize="18" Foreground="#FFA1A09F" ToolTip="The unique transaction ID. Click to view this transaction in the EON block explorer"><Hyperlink x:Name="TransactionLink" Click="TransactionLink_Click" ><Run Text="- - - - -"/></Hyperlink></TextBlock>
                             <Label x:Name="DetailTimestampLBL" Content="- - - - -" HorizontalAlignment="Left" Margin="525,28,0,0" VerticalAlignment="Top" Foreground="#FFA1A09F" Width="239" FontSize="16" Background="{x:Null}" ToolTip="The time this transaction was despatched"/>
                             <Label Content="Sender :" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Foreground="White" Width="127" FontSize="16" HorizontalContentAlignment="Right"/>
                             <Label Content="Recipient :" HorizontalAlignment="Left" Margin="424,62,0,0" VerticalAlignment="Top" Foreground="White" Width="98" FontSize="16" HorizontalContentAlignment="Right"/>
@@ -337,11 +335,7 @@
                             <Label x:Name="DetailTxType" Content="- - - - -" HorizontalAlignment="Center" Margin="319,-12,296.667,0" VerticalAlignment="Top" Foreground="#FFCA8417" Width="393" FontSize="20" HorizontalContentAlignment="Center" Height="40" ToolTip="Transaction Type"/>
                             <Separator HorizontalAlignment="Left" Height="9" Margin="10,3,0,0" VerticalAlignment="Top" Width="298" Foreground="#FFCA8417"/>
                             <Separator HorizontalAlignment="Left" Height="9" Margin="717,3,0,0" VerticalAlignment="Top" Width="283" Foreground="#FFCA8417"/>
-                            <TextBlock Margin="139,66,599.667,41.333" FontSize="18" Foreground="#FFA1A09F" ToolTip="The sender ID. Click to view this address in the EON block explorer">
-                                <Hyperlink x:Name="SenderLink" Click="SenderLink_Click" >
-                                    <Run Text="- - - - -"/>
-                                </Hyperlink>
-                            </TextBlock>
+                            <TextBlock Margin="139,66,599.667,41.333" FontSize="18" Foreground="#FFA1A09F" ToolTip="The sender ID. Click to view this address in the EON block explorer"><Hyperlink x:Name="SenderLink" Click="SenderLink_Click" ><Run Text="- - - - -"/></Hyperlink></TextBlock>
                             <TextBlock Margin="527,65,211.667,43.333" FontSize="18" Foreground="#FFA1A09F" ToolTip="The recipient ID. Click to view this address in the EON block explorer" RenderTransformOrigin="0.5,0.5">
                                 <TextBlock.RenderTransform>
                                     <TransformGroup>
