@@ -7,7 +7,7 @@
         xmlns:myEonClient="clr-namespace:myEonClient;assembly=myEonClient" xmlns:Properties="clr-namespace:myEonWallet.Properties"
         x:Name="myEonWallet" x:Class="myEonWallet.MainWindow"
         mc:Ignorable="d"
-        Title="myEonWallet" Height="804.087" Width="1096.704" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Closing="myEonWallet_Closing">
+        Title="myEonWallet" Height="804.087" Width="1096.704" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Closing="myEonWallet_Closing">
     <Window.Background>
         <ImageBrush ImageSource="images/parallax-01.jpg"/>
     </Window.Background>

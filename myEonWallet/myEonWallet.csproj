@@ -28,10 +28,11 @@
     <SupportUrl>http://eondev-wiki.info/doku.php%3fid=myeonwallet</SupportUrl>
     <ErrorReportUrl>http://eondev-wiki.info/doku.php%3fid=myeonwallet</ErrorReportUrl>
     <ProductName>myEonWallet</ProductName>
-    <PublisherName>EONDev Community, Exscudo slack %40gassman</PublisherName>
+    <PublisherName>myEonWallet</PublisherName>
+    <SuiteName>myEonWallet</SuiteName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>myEonWalletInstaller.htm</WebPage>
-    <ApplicationRevision>25</ApplicationRevision>
+    <ApplicationRevision>34</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -56,6 +57,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>A8BFBBE596CE7ECAA9A11401551EBC55EF67C4FA</ManifestCertificateThumbprint>
@@ -68,6 +70,18 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>myEonWallet_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>myEonWallet.App</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>color_logo_transparent_64_64_KiJ_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EonSharp, Version=0.11.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -253,6 +267,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="images\coinstack.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="color_logo_transparent_64_64_KiJ_icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -55,7 +55,7 @@ namespace myEonWallet
         public MainWindow()
         {
             InitializeComponent();
-
+                        
             //init objects
             eonClient = new MyEonClient();
             eonClient.DebugEvent += (sender, msg) => { DebugMsg(msg); };
