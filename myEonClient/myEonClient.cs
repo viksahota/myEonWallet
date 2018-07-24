@@ -216,7 +216,8 @@ namespace myEonClient
                 EonClient.ClassMapper[typeof(EonSharp.Network.ITransportContext)] = new ActivatorDescriptor[]
                     {
                         new ActivatorDescriptor(typeof(EonSharp.Network.Transports.HttpTransportClient)),
-                        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted", "accounts.getBalance", "colored.getInfo" } })
+                        //new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "getinformation" , "metadata.getAttributes", "history.getCommittedPage", "history.getUncommitted", "accounts.getBalance", "colored.getInfo" } })
+                        new ActivatorDescriptor(typeof(EonSharp.Logging.HttpTransportLogger), new object[]{ "[HTTP TRANSPORT] ", new string[]{ "history.get_uncommitted", "accounts.get_information", "history.get_committed_page", "accounts.get_balance", "colored.get_info", "metadata.get_attributes" } })
                     };
 
                 eonSharpClient = new EonClient(coreConfig.Peer);

@@ -460,31 +460,41 @@ namespace myEonWallet
 
         private void MSMTransactionCheckAndExport(Exception ex)
         {
+            string response = "";
+
+
             //detect multisig send the doesnt reach quorum - we need to export the transaction
-            string response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
 
-            if (response.Contains("The quorum is not exist"))
+            if (typeof(Exception)==typeof(EonSharp.Protocol.ProtocolException))
             {
-                string request = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcRequest;
-                string txRequestPattern = @"params"":\[([^]]*)";
-                Match requestMatch = Regex.Match(request, txRequestPattern);
+                response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
 
-                string transaction = "";
-
-                if (requestMatch.Groups.Count == 2) transaction = requestMatch.Groups[1].Value;
-
-
-                DebugMsg("MSM transaction did not reach quorum - exporting...");
-
-                MSMTXDialog msmDialog = new MSMTXDialog("MSM Transaction detected\r\n\r\nThis transaction needs to be signed by more delegates to acheive quorem. Export this transaction to a file now ?", "");
-                if ((bool)msmDialog.ShowDialog())
+                if (response.Contains("The quorum is not exist"))
                 {
-                    SaveFileDialog saveFileDialog = new SaveFileDialog();
-                    saveFileDialog.Title = "Export your signed multisig transaction to file to share with delegates....";
-                    if (saveFileDialog.ShowDialog() == true) File.WriteAllText(saveFileDialog.FileName, transaction);
+                    string request = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcRequest;
+                    string txRequestPattern = @"params"":\[([^]]*)";
+                    Match requestMatch = Regex.Match(request, txRequestPattern);
+
+                    string transaction = "";
+
+                    if (requestMatch.Groups.Count == 2) transaction = requestMatch.Groups[1].Value;
+
+
+                    DebugMsg("MSM transaction did not reach quorum - exporting...");
+
+                    MSMTXDialog msmDialog = new MSMTXDialog("MSM Transaction detected\r\n\r\nThis transaction needs to be signed by more delegates to acheive quorem. Export this transaction to a file now ?", "");
+                    if ((bool)msmDialog.ShowDialog())
+                    {
+                        SaveFileDialog saveFileDialog = new SaveFileDialog();
+                        saveFileDialog.Title = "Export your signed multisig transaction to file to share with delegates....";
+                        if (saveFileDialog.ShowDialog() == true) File.WriteAllText(saveFileDialog.FileName, transaction);
+                    }
+
                 }
 
+
             }
+
         }
 
         //keep track when the user selects another account
