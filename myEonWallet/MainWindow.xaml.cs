@@ -465,7 +465,7 @@ namespace myEonWallet
 
             //detect multisig send the doesnt reach quorum - we need to export the transaction
 
-            if (typeof(Exception)==typeof(EonSharp.Protocol.ProtocolException))
+            if (ex.GetType()==typeof(EonSharp.Protocol.ProtocolException))
             {
                 response = ((EonSharp.Protocol.ProtocolException)ex).JsonRpcResponse;
 
@@ -1390,12 +1390,12 @@ namespace myEonWallet
             {
                 case ("PaymentAttachment"):
                     EonSharp.Api.Transactions.Attachments.PaymentAttachment txPay = (EonSharp.Api.Transactions.Attachments.PaymentAttachment)tx.Attachment;
-                    summary = "Payment of " + txPay.Amount / 1000000 + " EON from Account ID:" + tx.Sender + " to AccountID: " + txPay.Recipient;
+                    summary = "Payment of " + ((float)txPay.Amount / (float)1000000) + " EON from Account ID:" + tx.Sender + " to AccountID: " + txPay.Recipient;
                     break;
 
                 case ("DepositAttachment"):
                     EonSharp.Api.Transactions.Attachments.DepositAttachment txDep = (EonSharp.Api.Transactions.Attachments.DepositAttachment)tx.Attachment;
-                    summary = "Account ID:" + tx.Sender + " change Deposit to " + txDep.Amount / 1000000 + " EON";
+                    summary = "Account ID:" + tx.Sender + " change Deposit to " + ((float)txDep.Amount / (float)1000000) + " EON";
                     break;
 
                 case ("RegistrationAttachment"):
